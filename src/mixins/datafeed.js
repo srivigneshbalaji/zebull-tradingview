@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { makeApiRequest, generateSymbol } from './helpers.js';
+import { makeApiRequest, generateSymbol,parseFullSymbol } from './helper.js';
 
 const configurationData = {
     supported_resolutions: ['1D', '1W', '1M'],
@@ -36,8 +36,17 @@ export default{
         console.log('[onReady]: Method call');
         setTimeout(() => callback(configurationData));
     },
-    searchSymbols: (userInput, exchange, symbolType, onResultReadyCallback) => {
+    searchSymbols: async(userInput, exchange, symbolType, onResultReadyCallback) => {
         console.log('[searchSymbols]: Method call');
+        const symbols = await getAllSymbols();
+        const newSymbols = symbols.filter(symbol => {
+        const isExchangeValid = exchange === '' || symbol.exchange === exchange;
+        const isFullSymbolContainsInput = symbol.full_name
+            .toLowerCase()
+            .indexOf(userInput.toLowerCase()) !== -1;
+        return isExchangeValid && isFullSymbolContainsInput;
+    });
+    onResultReadyCallback(newSymbols);
     },
     resolveSymbol: async(symbolName, onSymbolResolvedCallback, onResolveErrorCallback, extension) => {
         console.log('[resolveSymbol]: Method call', symbolName);
@@ -70,8 +79,49 @@ export default{
         onSymbolResolvedCallback(symbolInfo);
    
     },
-    getBars: (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
+    getBars: async(symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
         console.log('[getBars]: Method call', symbolInfo);
+        const { from, to, firstDataRequest } = periodParams;
+        console.log('[getBars]: Method call', symbolInfo, resolution, from, to);
+        const parsedSymbol = parseFullSymbol(symbolInfo.full_name);
+        const urlParameters = {
+            e: parsedSymbol.exchange,
+            fsym: parsedSymbol.fromSymbol,
+            tsym: parsedSymbol.toSymbol,
+            toTs: to,
+            limit: 2000,
+        };
+        const query = Object.keys(urlParameters)
+            .map(name => `${name}=${encodeURIComponent(urlParameters[name])}`)
+                .join('&');
+        try {
+            const data = await makeApiRequest(`data/histoday?${query}`);
+            if (data.Response && data.Response === 'Error' || data.Data.length === 0) {
+                // "noData" should be set if there is no data in the requested period.
+                onHistoryCallback([], { noData: true });
+                return;
+            }
+            let bars = [];
+            data.Data.forEach(bar => {
+                if (bar.time >= from && bar.time < to) {
+                    bars = [...bars, {
+                        time: bar.time * 1000,
+                        low: bar.low,
+                        high: bar.high,
+                        open: bar.open,
+                        close: bar.close,
+                    }];
+                }
+            });
+            console.log(`[getBars]: returned ${bars.length} bar(s)`);
+            onHistoryCallback(bars, { noData: false });
+        } catch (error) {
+            console.log('[getBars]: Get error', error);
+            onErrorCallback(error);
+        }
+
+
+
     },
     subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback) => {
         console.log('[subscribeBars]: Method call with subscriberUID:', subscriberUID);
