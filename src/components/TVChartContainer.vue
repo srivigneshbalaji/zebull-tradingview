@@ -18,7 +18,7 @@ export default {
   name: "TVChartContainer",
   props: {
     symbol: {
-      default: "RELIANCE::NSE",
+      default: "RELIANCE",
       type: String,
     },
     interval: {
@@ -111,7 +111,7 @@ export default {
           watchlist: true,
           datawindow: true,
           watchlist_settings: {
-            default_symbols: [], //"MSFT", "IBM", "AAPL"
+            default_symbols: ["RELIANCE","HDFC","TATAELXSI"], //"MSFT", "IBM", "AAPL"
           },
         },
 
