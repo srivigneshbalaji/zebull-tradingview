@@ -5,7 +5,8 @@
 <script>
 import { widget } from "../../public/charting_library";
 import Datafeed from "../mixins/feedFactory.js";
-
+import {ChartWatchlists} from "../mixins/marketWatchList.js";
+import { getWatchlist } from '../mixins/apiConnectionPool.js';
 function getLanguageFromURL() {
   const regex = new RegExp("[\\?&]lang=([^&#]*)");
   const results = regex.exec(window.location.search);
@@ -20,7 +21,7 @@ export default {
     symbol: {
       default: "RELIANCE",
       type: String,
-    },
+    }, //RELIANCE
     interval: {
       default: "1",
       type: String,
@@ -68,9 +69,7 @@ export default {
   tvWidget: null,
 
   data() {
-    return {
-      
-    };
+    return {};
   },
 
   created: function () {
@@ -84,18 +83,17 @@ export default {
 
   methods: {
     initTWChart() {
-      console.log("Datafeed :::::::: ",Datafeed)
+      console.log("Datafeed :::::::: ", Datafeed);
       const widgetOptions = {
         symbol: this.symbol,
-        // BEWARE: no trailing slash is expected in feed URL
-        datafeed: Datafeed, //new window.Datafeeds.UDFCompatibleDatafeed(this.datafeedUrl),
+        datafeed: Datafeed,
         interval: this.interval,
         container: this.containerId,
         library_path: this.libraryPath,
 
         locale: getLanguageFromURL() || "en",
         disabled_features: ["use_localstorage_for_settings"],
-        enabled_features: [ "dom_widget"],
+        enabled_features: ["dom_widget"],
         // charts_storage_url: this.chartsStorageUrl,
         charts_storage_api_version: this.chartsStorageApiVersion,
         client_id: this.clientId,
@@ -111,10 +109,10 @@ export default {
           watchlist: true,
           datawindow: true,
           watchlist_settings: {
-            default_symbols: ["RELIANCE","HDFC","TATAELXSI"], //"MSFT", "IBM", "AAPL"
+            default_symbols: [],
           },
         },
-
+        //"RELIANCE","HDFC","TATAELXSI"
         // sample news feed widget
         rss_news_feed: {
           default: [
@@ -126,7 +124,7 @@ export default {
         },
 
         broker_factory: function (host) {
-          console.log("host ======= ",host)
+          // console.log("host ======= ",host)
           return new Brokers.BrokerSample(host, Datafeed);
         },
         broker_config: {
@@ -171,7 +169,7 @@ export default {
 
       const tvWidget = new widget(widgetOptions);
       this.tvWidget = tvWidget;
-    
+
       tvWidget.onChartReady(() => {
         tvWidget.headerReady().then(() => {
           const button = tvWidget.createButton();
@@ -192,7 +190,47 @@ export default {
 
           button.innerHTML = "Check API";
         });
+
+        tvWidget.watchList().then((watchlistObj) => {
+          var chartWatchlist = new ChartWatchlists(watchlistObj);
+           console.log("[chartWatchlist] chartWatchlist :: ",chartWatchlist)
+          getWatchlist("mwGrpq").then((watchlists) => {  //get list of watchlist # this.brokerClass.watchlists()
+            console.log("[chartWatchlist] watchlists :: ",watchlists,typeof(watchlists))
+            // watchlists.forEach(watchlistdata => {
+              // console.log("[watchlist ,I] ",watchlistdata)
+              chartWatchlist.addWatchlist(watchlists);
+            // });
+          });
+
+          function updateWatchlist(listId, name, name2) {
+            chartWatchlist.updateWatchlist(listId);
+          }
+          function renameWatchList(listId, oldName, newName) {
+            window.dataLayer.push({
+              event: "tv-watchlist-renamed",
+            });
+            chartWatchlist.renameWatchlist(listId, oldName, newName);
+          }
+          function createWatchlist(listId, name, symbols) {
+            window.dataLayer.push({
+              event: "tv-watchlist-created",
+            });
+            chartWatchlist.createWatchlist(listId, name, symbols);
+          }
+          function deleteWatchlist(listId) {
+            window.dataLayer.push({
+              event: "tv-watchlist-deleted",
+            });
+            chartWatchlist.deleteWatchlist(listId);
+          }
+          watchlistObj.onListChanged().subscribe(null, updateWatchlist, false);
+          watchlistObj.onListRenamed().subscribe(null, renameWatchList, false);
+          watchlistObj.onListAdded().subscribe(null, createWatchlist, false);
+          watchlistObj.onListRemoved().subscribe(null, deleteWatchlist, false);
+        });
       });
+
+      // console.log("tvWidget @@@@=======> ", tvWidget); //.getList()
     },
   },
   destroyed() {
