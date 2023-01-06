@@ -1,10 +1,9 @@
 /* eslint-disable */
-import { makeApiRequest, fetchfromZebullAPI } from './apiConnectionPool.js';
+import { makeApiRequest, getWatchlistdata } from './apiConnectionPool.js';
 import { subscribeOnStream, unsubscribeFromStream } from './webSocketstream.js';
 
 const lastBarsCache = new Map();
-var watchlistapi = "https://api.zebull.in/rest/V2MobullService/marketWatch/fetchMWScrips"
-var dataArr = []
+
 const configurationData = {
     supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
     exchanges: [
@@ -28,7 +27,8 @@ const configurationData = {
 
 export default {
     onReady: (callback) => {
-        console.log('[onReady]: Method call');
+        console.log("START==>>>>>>>> [onReady] @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ")
+        // console.log('[onReady]: Method call');
         setTimeout(() => callback(configurationData));
     },
     searchSymbols: async (userInput, exchange, symbolType, onResultReadyCallback) => {
@@ -46,63 +46,15 @@ export default {
     },
 
     getQuotes(symbols, onDataCallback, onErrorCallback) {
-        let myHeaders = new Headers();
-        myHeaders.append("Content-Type", "application/json");
-        myHeaders.append("Authorization", "Bearer ZP00231 BXnkuqqyxUmH6gJgL8H95UDalo1EFWEsky0I1dvP3ec4MejxDzPn5FJmzszEQUd3r1r3z9j11l13WlEGctxfa4czOkTkoa6RZZGYaJLzQBdAvDbNiJHe2P3kJXTgjdpmy6LmjrpRWgaQGeshhHlX65vl24Z1doqahH2JzeNXTRvhGrp2d91MfXt2NyEa8Y8oiHBVn4QtPxGKEWW1najrQh7JSXXIDAOfbG3VhXGM3HGWQ7KUUsOgTKNTLmDy2F5T")
-        let watchlistName = JSON.stringify({
-            "mwName": "mwGrpq",
-            "userId": "ZP00231"
-        });
-        var requestOptions = {
-            method: 'POST',
-            redirect: 'follow',
-            headers: myHeaders,
-            body: watchlistName
-        };
 
+        
         console.log("[getQuotes] symbols ::: ",symbols)
-        fetchfromZebullAPI(watchlistapi, requestOptions)
-            .then(function (response) {
-                if (response.stat == "Ok" && response.values[0] !== "No Market Watch") {
-                    // console.log("[MarketWatch] getQuotes response :: ", response.values)
-                    for (let scripts in response.values ) {
-                        // console.log("DATA of Watchlist !!!!!!!!!!!!!!",parseFloat(response.values[scripts].ltp),typeof(parseFloat(response.values[scripts].ltp)))
-                        let script=response.values[scripts]
-                        // subsymbols.push(result[i]['n'])
-                        let quote = {
-                            s: 'ok',
-                            n: script.symbolname,
-                            v: {
-                                ch: script.open,
-                                chp:script.Change,
-                                short_name:script.symbolname ,
-                                exchange:script.Exchange ,
-                                description:script.companyname,
-                                lp:parseFloat(script.ltp),
-                                ask:script.BestBuyPrice ,
-                                ask_qty:script.BestBuySize ,
-                                bid:script.BestSellPrice ,
-                                bid_qty:script.BestSellSize, 
-                                open_price:script.open ,
-                                high_price:script.high ,
-                                low_price:script.low  ,
-                                prev_close_price:script.close,
-                                volume:parseInt(script.TradeVolume)
-                            }
-                        }
-                        dataArr.push(quote)
-                        // data += response[i]['v']['exchange'] + '|' + response[i]['token'] + '#'
-                    }
-                }
-            })
-
+        getWatchlistdata("mwGrpq").then(function(dataArr) {
         console.log("[getQuotes] watchlistapi dataArr :: ", dataArr)
         onDataCallback(dataArr)
-        onErrorCallback((error) => {
-            console.log("error  ::  ",error)
-        })
+        onErrorCallback((error) => {console.log("error  ::  ",error)})
+        })  
     },
-
 
     subscribeQuotes: async(symbols, fastSymbols, onRealtimeCallback, listenerGUID) => {
 		// listenerGUID;

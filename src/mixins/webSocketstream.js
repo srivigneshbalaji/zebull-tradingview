@@ -11,9 +11,6 @@ const socket =new WebSocket(url);
 const channelToSubscription = new Map();
 var connectionStatus=false
 
-
-// var subscribedata = ['{"t": "c", "uid": "VIJAY22", "actid": "VIJAY22","source": "MOB","susertoken": "305218d75387791e96aee97b9ba62bf3d2834836417f5cdee1b64b485673bad6"}', `{"t": "d", "k": "NSE|2885"}`]
-
 socket.onopen = function() {
     connectionRequest()
   }
