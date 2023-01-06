@@ -48,7 +48,7 @@ export default {
     getQuotes(symbols, onDataCallback, onErrorCallback) {
         let myHeaders = new Headers();
         myHeaders.append("Content-Type", "application/json");
-        myHeaders.append("Authorization", "Bearer ZP00231 vbRUidiW4eqvShcfnQNqrdBv9QXodIDG9YKM0egyF3FnUlQjkIl2PkcyplruJFeLhl45NIiosOgW8zDce2YLqe5VQYCvMpxR8WZuyoP9tuzFb7d8HpS38mBIHTUVelWjezEGqBPRxZWYDAV1WEMg1yPxSAe15CzcJ9P5eVNenO8ZNHkNxzPqH0KR4GiPi8WWeM2SRv1cYkODPD9Y5iEmZADG9no82VWRJ0G52fayY9iM2lervJP1P8GmMRb56CZ9")
+        myHeaders.append("Authorization", "Bearer ZP00231 BXnkuqqyxUmH6gJgL8H95UDalo1EFWEsky0I1dvP3ec4MejxDzPn5FJmzszEQUd3r1r3z9j11l13WlEGctxfa4czOkTkoa6RZZGYaJLzQBdAvDbNiJHe2P3kJXTgjdpmy6LmjrpRWgaQGeshhHlX65vl24Z1doqahH2JzeNXTRvhGrp2d91MfXt2NyEa8Y8oiHBVn4QtPxGKEWW1najrQh7JSXXIDAOfbG3VhXGM3HGWQ7KUUsOgTKNTLmDy2F5T")
         let watchlistName = JSON.stringify({
             "mwName": "mwGrpq",
             "userId": "ZP00231"
@@ -87,7 +87,7 @@ export default {
                                 high_price:script.high ,
                                 low_price:script.low  ,
                                 prev_close_price:script.close,
-                                volume:script.TradeVolume
+                                volume:parseInt(script.TradeVolume)
                             }
                         }
                         dataArr.push(quote)
@@ -123,23 +123,48 @@ export default {
             method: 'GET',
             redirect: 'follow'
         };
-        let symbols = [await makeApiRequest(`https://api.zebull.in/rest/V2MobullService/chart/symbols?symbol=${symbolName}::NSE`, requestOptions)];
-        // const symbols = await getAllSymbols();
-        console.log("[resolveSymbol] symbols ===> ", symbols, typeof (symbols))
-        const symbolItem = symbols.find(({ name }) => {
-            console.log("[resolveSymbol] symbolItem find match name ====> ", name.split("::")[0], symbolName, name.split("::")[0] === symbolName)
-            return name.split("::")[0] === symbolName
+        if(symbolName.includes(":::NFO")){
+            const myArray = symbolName.split(":::");
+            symbolName = myArray[0];
+        }
+        else{
+            symbolName=symbolName+"::NSE";
+            console.log("SYMBOL NAME:::::", symbolName)
+        }
+        var symbolItem;
 
-        });
+        let symbols = [await makeApiRequest(`https://api.zebull.in/rest/V2MobullService/chart/symbols?symbol=${symbolName}`, requestOptions)];
+        // const symbols = await getAllSymbols();
+        console.log("RESOLVE REQUEST URL::",`https://api.zebull.in/rest/V2MobullService/chart/symbols?symbol=${symbolName}`)
+        console.log("[resolveSymbol] symbols ===> ", symbolName, symbols, typeof (symbols),symbols[0]['exchange-listed'])
+        if(symbols[0]['exchange-listed']=='NFO'){
+            symbolItem = symbols.find(({ description }) => {
+                console.log("[resolveSymbol] symbolItem find match name ====> ", description, symbolName.split("::")[0], description === symbolName.split("::")[0])
+                return description === symbolName.split("::")[0]
+            });
+        }
+        else{
+            symbolItem = symbols.find(({ name }) => {
+                console.log("[resolveSymbol] symbolItem find match name ====> ", name.split("::")[0], symbolName.split("::")[0], name.split("::")[0] === symbolName.split("::")[0])
+                return name.split("::")[0] === symbolName.split("::")[0]
+            });
+    }
         if (!symbolItem) {
             console.log('[resolveSymbol]: Cannot resolve symbol', symbolName);
             onResolveErrorCallback('cannot resolve symbol');
             return;
         }
+        var ticker;
+        if(symbolItem['exchange-listed']=="NFO"){
+            ticker=symbolItem.description+"::"+symbolItem['exchange-listed'];
+        }
+        else{
+            ticker = symbolItem.name
+        }
         const symbolInfo = {
             token:symbolItem.ticker,
-            ticker: symbolItem.name,
-            name: symbolItem.name,
+            ticker: ticker,
+            name: ticker,
             description: symbolItem.description,
             type: symbolItem.type,
             session: symbolItem.session,

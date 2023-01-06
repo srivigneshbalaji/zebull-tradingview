@@ -92,7 +92,7 @@ export default {
         interval: this.interval,
         container: this.containerId,
         library_path: this.libraryPath,
-
+        timezone: 'Asia/Kolkata',
         locale: getLanguageFromURL() || "en",
         disabled_features: ["use_localstorage_for_settings"],
         enabled_features: [ "dom_widget"],
