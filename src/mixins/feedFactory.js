@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { makeApiRequest, getWatchlist } from './apiConnectionPool.js';
+import { makeApiRequest, getWatchlistdata } from './apiConnectionPool.js';
 import { subscribeOnStream, unsubscribeFromStream } from './webSocketstream.js';
 
 const lastBarsCache = new Map();
@@ -46,15 +46,14 @@ export default {
     },
 
     getQuotes(symbols, onDataCallback, onErrorCallback) {
+
+        
         console.log("[getQuotes] symbols ::: ",symbols)
-        getWatchlist("mwGrpq").then(function(dataArr) {
+        getWatchlistdata("mwGrpq").then(function(dataArr) {
         console.log("[getQuotes] watchlistapi dataArr :: ", dataArr)
         onDataCallback(dataArr)
-        onErrorCallback((error) => {
-            console.log("error  ::  ",error)
-        })
-        })
-        
+        onErrorCallback((error) => {console.log("error  ::  ",error)})
+        })  
     },
 
     subscribeQuotes: async(symbols, fastSymbols, onRealtimeCallback, listenerGUID) => {

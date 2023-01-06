@@ -6,7 +6,7 @@
 import { widget } from "../../public/charting_library";
 import Datafeed from "../mixins/feedFactory.js";
 import {ChartWatchlists} from "../mixins/marketWatchList.js";
-import { getWatchlist } from '../mixins/apiConnectionPool.js';
+import { getWatchlistdata } from '../mixins/apiConnectionPool.js';
 function getLanguageFromURL() {
   const regex = new RegExp("[\\?&]lang=([^&#]*)");
   const results = regex.exec(window.location.search);
@@ -71,14 +71,11 @@ export default {
   data() {
     return {};
   },
-
   created: function () {
     this.$root.$refs.TVChartContainer = this;
   },
   mounted() {
-    // const container = this.$refs.chartContainer;
     this.initTWChart();
-    // console.log("Datafeed :: ",Datafeed)
   },
 
   methods: {
@@ -193,16 +190,23 @@ export default {
 
         tvWidget.watchList().then((watchlistObj) => {
           var chartWatchlist = new ChartWatchlists(watchlistObj);
-           console.log("[chartWatchlist] chartWatchlist :: ",chartWatchlist)
-          getWatchlist("mwGrpq").then((watchlists) => {  //get list of watchlist # this.brokerClass.watchlists()
-            console.log("[chartWatchlist] watchlists :: ",watchlists,typeof(watchlists))
+           console.log("[chartWatchlist] Init chartWatchlist :: ",watchlistObj,chartWatchlist)
+
+          // getWatchlistdata("mwGrpq").then((watchlists) => {  //get list of watchlist # this.brokerClass.watchlists()
+          //   console.log("[chartWatchlist] watchlists :: ",watchlists,typeof(watchlists))
             // watchlists.forEach(watchlistdata => {
               // console.log("[watchlist ,I] ",watchlistdata)
-              chartWatchlist.addWatchlist(watchlists);
-            // });
-          });
 
+             
+              chartWatchlist.addWatchlist([{"id":"mwGrpq","name":"mwGrpq"}]);
+            // });
+          // });
+        //  updateWatchlist("WatchHere")
+
+          //  chartWatchlist.getme()
+        // chartWatchlist.createWatchlist("WatchHere","HDFC","HDFC")
           function updateWatchlist(listId, name, name2) {
+            console.log("[watchlist] updateWatchlist listId",listId)
             chartWatchlist.updateWatchlist(listId);
           }
           function renameWatchList(listId, oldName, newName) {
@@ -212,12 +216,14 @@ export default {
             chartWatchlist.renameWatchlist(listId, oldName, newName);
           }
           function createWatchlist(listId, name, symbols) {
+            console.log("[watchlist] createWatchlist=== listId",listId)
             window.dataLayer.push({
               event: "tv-watchlist-created",
             });
             chartWatchlist.createWatchlist(listId, name, symbols);
           }
           function deleteWatchlist(listId) {
+            console.log("[watchlist] deleteWatchlist listId",listId)
             window.dataLayer.push({
               event: "tv-watchlist-deleted",
             });
@@ -229,8 +235,6 @@ export default {
           watchlistObj.onListRemoved().subscribe(null, deleteWatchlist, false);
         });
       });
-
-      // console.log("tvWidget @@@@=======> ", tvWidget); //.getList()
     },
   },
   destroyed() {
