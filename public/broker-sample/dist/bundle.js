@@ -3,6 +3,8 @@
     factory(global.Brokers = {}));
 }(this, (function(exports) {
     'use strict';
+    var userid = localStorage.getItem('userid');
+    var usession = localStorage.getItem('usession');
     const holdingsPageColumns = [{
         label: 'Symbol',
         formatter: 'symbol',
@@ -119,7 +121,7 @@
         if (request.method)
             requestMethod = request.method;
         const queryParams = window.queryParams;
-        let session = "aBhYLt9NGQAJCD9MRHeBsZkjISpd89kCKVcm8LLp0KkCocdloHVo5BiuPERBOLtgGmIWzgFuWMhv94UvegXGKYlk33Oia2zjiaSlRLUZWH7PCAoQa840s2egyg4cBBb3XOyzT2fVsy0GsWdf63n0EtxJAT3kOTZH96LReZrH9o0q7LKNd2TmPU6oQHjADT8nSI9WdMSslkDsFREFy07fO9MV0RizcZ7dmKRxWgi0PGGb6dYzIA3MWQhGDjeMl8KQ";
+        let session = usession;
         // queryParams.userId="ZVK0106";
         // queryParams.session="T1RIB25UabTq25FdExo2c5fiYSm6sLFe30GS47YyRMVCe73gNhZE2xj1lVmrxofyvGcoqjzoggk4VcGOfZa8sHZ250VgY49pjSoDslmnOjSZY7eHWDe8I1PY73CBlb7bminCbRxzZMMJq1JfGk3RSZzGqGyiSV5lbrea2ZIu1Zznpu5Vu3IUUou3f7C7cOsO2Ucsri2MNmTtxG4crkdkCSclDm55fqBngH5uuUxUX6UWnHlJyoCT4yvzaDy6tEAC";
         if (!session)
@@ -128,7 +130,7 @@
             method: requestMethod,
             credentials: 'include',
             headers: {
-                "Authorization": "Bearer ZVK0106 aBhYLt9NGQAJCD9MRHeBsZkjISpd89kCKVcm8LLp0KkCocdloHVo5BiuPERBOLtgGmIWzgFuWMhv94UvegXGKYlk33Oia2zjiaSlRLUZWH7PCAoQa840s2egyg4cBBb3XOyzT2fVsy0GsWdf63n0EtxJAT3kOTZH96LReZrH9o0q7LKNd2TmPU6oQHjADT8nSI9WdMSslkDsFREFy07fO9MV0RizcZ7dmKRxWgi0PGGb6dYzIA3MWQhGDjeMl8KQ",
+                "Authorization": `Bearer ${userid} ${usession}`,
                 "Content-Type": "application/json"
             }
         };
@@ -911,8 +913,8 @@
         return order;
     }
     function getUserId() {
-        const queryParams = window.queryParams;
-        return "ZVK0106";
+        const queryParams = localStorage.getItem('userid');
+        return queryParams;
     }
     function formatStreamingDataListToQuotes(data) {
         if (data) {

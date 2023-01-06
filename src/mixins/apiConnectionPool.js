@@ -1,5 +1,7 @@
 // Make requests to CryptoCompare API
-var watchlistapi = "https://api.zebull.in/rest/V2MobullService/marketWatch/fetchMWScrips"
+var userid = localStorage.getItem('userid');
+var usession = localStorage.getItem('usession');
+var watchlistapi = "https://api.zebull.in/rest/V2MobullService/api/marketWatch/fetchMWScrips"
 
 export async function makeApiRequest(path, requestOptions) {
     try {
@@ -25,10 +27,9 @@ export async function getWatchlistdata(watchlistID) {
    
     let myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("Authorization", "Bearer ZP00231 vKOLZVI08bJ9MzzltahsW1FmQLqqoJEVdZHf0m8HungAnVdBs2N15fQoC13Fyz8Nl5n2YD0tTvx3pRjl09x1njWlz5tYRp37jGpCLMIZkFMKMCBdqL32vAlF2OznlUQUtnBg2krSWDfVvZcbYBJa2t80W8T8OLu4nCrkGmp2dy3Wsfftu8YRbjX5Pekg2kLYXl6H7Se1Pvfz3hGRsdE5587KdVLHkmtmfrjvdgKHuDfAkZc4cNJI40W53a2f63go")
+    myHeaders.append("Authorization", `Bearer ${userid} ${usession}`)
     let watchlistName = JSON.stringify({
-        "mwName": watchlistID,
-        "userId": "ZP00231"
+        "mwName": watchlistID
     });
     var requestOptions = {
         method: 'POST',

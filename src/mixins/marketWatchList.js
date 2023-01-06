@@ -2,6 +2,9 @@ import {getWatchlistdata } from './apiConnectionPool.js';
 // import {
 //     DataFeedInstance
 // } from '../chart-datafeed/udf-compatible-datafeed'
+
+var userid = localStorage.getItem('userid');
+var usession = localStorage.getItem('usession');
 export class ChartWatchlists {
     constructor(watchlistObj) {
         this._watchlists = {}
@@ -143,4 +146,21 @@ export class ChartWatchlists {
         }, 200)
     }
 
+}
+
+export async function getMWValues(){
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", `Bearer ${userid} ${usession}`);
+
+    var requestOptions = {
+    method: 'GET',
+    headers: myHeaders,
+    redirect: 'follow'
+    };
+
+   const response= await fetch("https://zebull.in/rest/MobullService/v1/marketWatch/fetchMWList", requestOptions)
+        let watchdata=response.json()
+        return watchdata
+    .catch(error => console.log('error', error));
 }

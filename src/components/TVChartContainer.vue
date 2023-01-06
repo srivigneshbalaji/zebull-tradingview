@@ -5,7 +5,7 @@
 <script>
 import { widget } from "../../public/charting_library";
 import Datafeed from "../mixins/feedFactory.js";
-import {ChartWatchlists} from "../mixins/marketWatchList.js";
+import {ChartWatchlists,getMWValues} from "../mixins/marketWatchList.js";
 import { getWatchlistdata } from '../mixins/apiConnectionPool.js';
 function getLanguageFromURL() {
   const regex = new RegExp("[\\?&]lang=([^&#]*)");
@@ -69,7 +69,8 @@ export default {
   tvWidget: null,
 
   data() {
-    return {};
+    return {
+    };
   },
   created: function () {
     this.$root.$refs.TVChartContainer = this;
@@ -188,7 +189,7 @@ export default {
           button.innerHTML = "Check API";
         });
 
-        tvWidget.watchList().then((watchlistObj) => {
+        tvWidget.watchList().then(async  (watchlistObj) => {
           var chartWatchlist = new ChartWatchlists(watchlistObj);
            console.log("[chartWatchlist] Init chartWatchlist :: ",watchlistObj,chartWatchlist)
 
@@ -196,9 +197,16 @@ export default {
           //   console.log("[chartWatchlist] watchlists :: ",watchlists,typeof(watchlists))
             // watchlists.forEach(watchlistdata => {
               // console.log("[watchlist ,I] ",watchlistdata)
+              var mwid =await getMWValues();
+              console.log("MWID >>>>>>>>>>>>>>>",mwid)
+              let a = [];
+              for(let i in mwid.values){
+                console.log("II",i,mwid.values[i])
+                a.push({"id":mwid.values[i],"name":mwid.values[i]})
+              }
 
              
-              chartWatchlist.addWatchlist([{"id":"mwGrpq","name":"mwGrpq"}]);
+              chartWatchlist.addWatchlist(a);
             // });
           // });
         //  updateWatchlist("WatchHere")

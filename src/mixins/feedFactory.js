@@ -1,9 +1,9 @@
 /* eslint-disable */
 import { makeApiRequest, getWatchlistdata } from './apiConnectionPool.js';
 import { subscribeOnStream, unsubscribeFromStream } from './webSocketstream.js';
+import {getMWValues} from './marketWatchList.js';
 
 const lastBarsCache = new Map();
-
 const configurationData = {
     supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
     exchanges: [
@@ -45,15 +45,18 @@ export default {
         onResultReadyCallback(symbols);
     },
 
-    getQuotes(symbols, onDataCallback, onErrorCallback) {
+    async getQuotes(symbols, onDataCallback, onErrorCallback) {
 
         
         console.log("[getQuotes] symbols ::: ",symbols)
-        getWatchlistdata("mwGrpq").then(function(dataArr) {
+        var a = await getMWValues();
+        for(let i in a.values){
+        getWatchlistdata(a.values[i]).then(function(dataArr) {
         console.log("[getQuotes] watchlistapi dataArr :: ", dataArr)
         onDataCallback(dataArr)
         onErrorCallback((error) => {console.log("error  ::  ",error)})
         })  
+    }
     },
 
     subscribeQuotes: async(symbols, fastSymbols, onRealtimeCallback, listenerGUID) => {
