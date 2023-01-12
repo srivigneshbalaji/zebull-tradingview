@@ -221,11 +221,6 @@ async function getAllSymbols(searchInput) {
         redirect: 'follow'
     };
     const allSymbols = await makeApiRequest("https://zebull.in/rest/MobullService/exchange/getScripForSearch", requestOptions);
-    // console.log("[getAllSymbols] fetch data response :: ",allSymbols)
-    // return allSymbols;
-
-  
-		// console.log('[searchSymbols]: Method call');
 		
 		let searchSymbols = allSymbols.filter(symbol => symbol)
 			.map(value => {

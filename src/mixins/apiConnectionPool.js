@@ -1,4 +1,4 @@
-// Make requests to CryptoCompare API
+
 var userid = localStorage.getItem('userid');
 var usession = localStorage.getItem('usession');
 var watchlistapi = "https://api.zebull.in/rest/V2MobullService/api/marketWatch/fetchMWScrips"
