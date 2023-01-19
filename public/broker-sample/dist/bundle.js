@@ -45,7 +45,7 @@
         formatter: 'symbol',
         property: 'symdata',
     }, {
-        label: 'EXC',
+        label: 'Exch.',
         property: 'exc',
     }, {
         label: 'Time',
@@ -60,7 +60,7 @@
         label: 'Qty',
         property: 'quantity',
     }, {
-        label: 'LTP',
+        label: 'Ltp',
         alignment: 'right',
         property: 'last',
         formatter: 'formatPriceForexSup',
@@ -76,7 +76,7 @@
         supportedStatusFilters: [0],
         alignment: 'right',
     }, {
-        label: "ORDER ID",
+        label: "Order Id",
         property: "id"
     }];
     const positionsPageColumns = [{
@@ -111,7 +111,8 @@
         alignment: 'right',
         property: 'profit',
         formatter: 'profit',
-    }, ];
+    }
+];
     const liveBaseURL = "https://api.zebull.in/rest/V2MobullService/api";
     // const uatBaseURL = "https://ant-uat.aliceblueonline.com/rest/AliceBlueUATAPIService";
     function callApi(url, request) {
@@ -139,6 +140,7 @@
         const baseURL = liveBaseURL
         return promiseTimeout(fetch(baseURL + url, param).then(checkStatus).then(getBody).then(parseBody).then(parseJson).catch(function(apiError) {
             if (!apiError.infoID) {
+                console.log("ERROR::", apiError);
                 const error = new Error("");
                 throw error;
             }
@@ -423,6 +425,7 @@
             return handler(order);
         }
         editPositionBrackets(positionId, positionBrackets) {
+            console.log("EDIT POSITION::", positionId,positionBrackets);
             const handler = (id,brackets)=>{
                 const position = this._positionById[id];
                 if (position) {
@@ -437,19 +440,6 @@
             }
             ;
             return handler(positionId, positionBrackets);
-        }
-        async closePosition(positionId) {
-            const position = this._positionById[positionId];
-            const handler = ()=>{
-                this.placeOrder({
-                    symbol: position.symbol,
-                    side: position.side === -1 ? 1 : -1,
-                    type: 2,
-                    qty: position.qty,
-                });
-            }
-            ;
-            await handler();
         }
         async orders(resultData=null, refresh=false) {
             const getOrderbookData = ()=>{
@@ -513,6 +503,7 @@
             }
             ;
             const tradeList1 = await holdingsData();
+            if(tradeList1.stat=='Ok'){
             const tradeList = tradeList1.HoldingVal;
             console.log("kjjjjjj)))))))))", tradeList)
             if (tradeList && tradeList.length) {
@@ -524,6 +515,7 @@
                 });
                 this._changeHoldingssDelegate.fire(chartUnderstoodTradeData);
                 return Promise.resolve(chartUnderstoodTradeData);
+            }
             }
             return Promise.resolve([]);
         }
@@ -616,6 +608,7 @@
                 }
                 );
                 this._changeClosedPositionsDelegate.fire(chartUnderstoodPositionData);
+                console.log("Position Data Firing::",chartUnderstoodPositionData);
                 return Promise.resolve(chartUnderstoodPositionData);
             }
             return Promise.resolve([]);
@@ -639,14 +632,30 @@
             ;
             await handler();
         }
-        cancelOrder(orderId) {
+        async cancelOrder(orderId) {
             const order = this._orderById[orderId];
             const handler = ()=>{
                 order.status = 1;
                 this._updateOrder(order);
+                
                 return Promise.resolve();
             }
             ;
+            const ordercancel = ()=>{
+                const request = {
+                    data: {
+                            "exch": order.exc,
+                            "nestOrderNumber": order.id,
+                            "trading_symbol": order.symdata
+                    },
+                    method:"POST"
+                };
+                const response = callApi("/placeOrder/cancelOrder",request);
+                return Promise.resolve(response);
+        }
+        ;
+            const ordcancel = await ordercancel();
+            console.log("Order Cancelled for Order",ordcancel)
             return handler();
         }
         cancelOrders(symbol, side, ordersIds) {
@@ -659,6 +668,37 @@
             }
             ;
             return closeHandler();
+        }
+        async closePosition(positionId) {
+            console.log("POSITION CLOSE::",this._positionById);
+            const position = this._positionById[positionId];
+            console.log("POSITION CLOSE::",positionId,position);
+            const positionClose = ()=>{
+                const request = {
+                    data: {
+                        "exchSeg":position.positionParams.Exchangeseg,
+                        "pCode":position.pType,
+                        "netQty":position.qty,
+                        "tockenNo":position.id,
+                        "symbol":position.symbol
+                      },
+                    method:"POST"
+                };
+                const response = callApi("/positionAndHoldings/sqrOofPosition",request);
+                return Promise.resolve(response);
+        }
+        ;
+            const posclose = await positionClose();
+            console.log("Order Cancelled for Order",posclose);
+            const handler = ()=>{
+                position.side = position.side === -1 ? 1 : -1,
+                position.type=2,
+                console.log("Close Position");
+                this._updatePosition(position);
+                return Promise.resolve();
+            }
+            ;
+            return handler();
         }
         possibleOrderStatuses() {
             return [1, 2, 5, 6, ];
@@ -890,14 +930,15 @@
         if (!positionData.symbol)
             positionData.symbol = positionData.Tsym;
         const isBuy = Number(positionData.Netqty) >= 0;
-        const avgPrice = isBuy ? Number(positionData.NetBuyavgprc) : Number(positionData.NetSellavgprc);
+        const avgPrice = isBuy ? Number(positionData.NetBuyavgprc.replace(',', '')) : Number(positionData.NetSellavgprc.replace(',', ''));
         const exc = positionData.Exchange;
-        const bAvg = exc == "CDS" || exc == "BCD" ? (parseFloat(positionData.NetBuyavgprc).toFixed(4)) : (parseFloat(positionData.NetBuyavgprc).toFixed(2));
-        const sAvg = exc == "CDS" || exc == "BCD" ? (parseFloat(positionData.NetSellavgprc).toFixed(4)) : (parseFloat(positionData.NetSellavgprc).toFixed(2));
+        const bAvg = exc == "CDS" || exc == "BCD" ? (parseFloat(positionData.NetBuyavgprc.replace(',', '')).toFixed(4)) : (parseFloat(positionData.NetBuyavgprc.replace(',', '')).toFixed(2));
+        const sAvg = exc == "CDS" || exc == "BCD" ? (parseFloat(positionData.NetSellavgprc.replace(',', '')).toFixed(4)) : (parseFloat(positionData.NetSellavgprc.replace(',', '')).toFixed(2));
+        console.log("BAVG::", bAvg,"SAVG::",sAvg,positionData.NetBuyavgprc,positionData.NetSellavgprc)
         const pQty = Number(positionData.Netqty);
         const order = {
             id: positionData.Token,
-            symbol: formSymbolrequestFormat(positionData),
+            symbol: positionData.Tsym,
             qty: pQty,
             side: isBuy ? 1 : -1,
             avgPrice: avgPrice,

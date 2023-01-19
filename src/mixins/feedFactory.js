@@ -45,19 +45,17 @@ export default {
         onResultReadyCallback(symbols);
     },
 
-    async getQuotes(symbols, onDataCallback, onErrorCallback) {
-
-        
-        console.log("[getQuotes] symbols ::: ",symbols)
-        var a = await getMWValues();
-        for(let i in a.values){
-        getWatchlistdata(a.values[i]).then(function(dataArr) {
-        console.log("[getQuotes] watchlistapi dataArr :: ", dataArr)
-        onDataCallback(dataArr)
-        onErrorCallback((error) => {console.log("error  ::  ",error)})
-        })  
-    }
-    },
+    // async getQuotes(symbols, onDataCallback, onErrorCallback) {
+    //     console.log("[getQuotes] symbols ::: ",symbols)
+    //     var a = await getMWValues();
+    //     for(let i in a.values){
+    //     getWatchlistdata(a.values[i]).then(function(dataArr) {
+    //     console.log("[getQuotes] watchlistapi dataArr :: ", dataArr)
+    //     onDataCallback(dataArr)
+    //     onErrorCallback((error) => {console.log("error  ::  ",error)})
+    //     })  
+    // }
+    // },
 
     subscribeQuotes: async(symbols, fastSymbols, onRealtimeCallback, listenerGUID) => {
 		// listenerGUID;
@@ -78,9 +76,18 @@ export default {
             method: 'GET',
             redirect: 'follow'
         };
-        if(symbolName.includes(":::NFO")){
+        if(symbolName.includes("-EQ::NSE")){
+            symbolName=symbolName.replace('-EQ::NSE','::NSE');
+        }
+        else if(symbolName.includes("-EQ")){
+            symbolName=symbolName.replace('-EQ','::NSE');
+        }
+        else if(symbolName.includes(":::NFO")){
             const myArray = symbolName.split(":::");
             symbolName = myArray[0];
+        }
+        else if(symbolName.includes("FUT")){
+            symbolName=symbolName+"::MCX";
         }
         else{
             symbolName=symbolName+"::NSE";
@@ -93,6 +100,12 @@ export default {
         console.log("RESOLVE REQUEST URL::",`https://api.zebull.in/rest/V2MobullService/chart/symbols?symbol=${symbolName}`)
         console.log("[resolveSymbol] symbols ===> ", symbolName, symbols, typeof (symbols),symbols[0]['exchange-listed'])
         if(symbols[0]['exchange-listed']=='NFO'){
+            symbolItem = symbols.find(({ description }) => {
+                console.log("[resolveSymbol] symbolItem find match name ====> ", description, symbolName.split("::")[0], description === symbolName.split("::")[0])
+                return description === symbolName.split("::")[0]
+            });
+        }
+        else if(symbols[0]['exchange-listed']=='MCX'){
             symbolItem = symbols.find(({ description }) => {
                 console.log("[resolveSymbol] symbolItem find match name ====> ", description, symbolName.split("::")[0], description === symbolName.split("::")[0])
                 return description === symbolName.split("::")[0]
