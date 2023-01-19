@@ -1,4 +1,5 @@
 import {getWatchlistdata } from './apiConnectionPool.js';
+import {logMessage} from '../utils/helpers.js'
 // import {
 //     DataFeedInstance
 // } from '../chart-datafeed/udf-compatible-datafeed'
@@ -12,16 +13,9 @@ export class ChartWatchlists {
         // this._broker = "BrokerApiInstance"
         // this._feed = "DataFeedInstance"
     }
-//     getme(){
-//     console.log("HELLOOOOOOOOOOOOOO")
-// }
+
     updateWatchlist(listId) {
-        // console.log("UPDATE --------- :; ",this._watchlists,this.watchlistObj)
-        // if (this._watchlists[listId].readonly) {
-        //     window.alert("Changes made to default watchlist will not be stored to server")
-        //     return
-        // }
-        console.error(listId)
+        console.log("[updatewatchlist] listId : ",listId)
         var list = this._watchlistObj.getAllLists()[listId]
         // console.error("error === > ",list)
         
@@ -46,37 +40,29 @@ export class ChartWatchlists {
                     stocksOrder: payload_symbols
                 })
             }
-            // console.log("(payload_symbols", payload_symbols)
+           
         })
 
     }
   async addWatchlist(watchlist) {
         var watchlistSymbols=[]
        
-        console.log("@@@ [watchlist] @@@@  ",watchlist)
+        console.log(`"@@@ [watchlist] @@@@  ",`,watchlist.name)
 
-       var response=await getWatchlistdata(watchlist[0].name)
-       console.log("response ::::::::::::::::::: ",response)
+       var response=await getWatchlistdata(watchlist.name)
+       
+       console.log(`[[watchlist]] response ::::::::::::::::::: `,response)
             response.forEach(resp=>{
-                console.log("@@@ [watchlist] @@@@  ")
+                // logMessage("@@@ [watchlist] @@@@  ")
                 watchlistSymbols.push(resp.n)
 
             })          
-    
-        watchlistSymbols.forEach(resp=>{
-            console.log("watchlistSymbols :: ",resp)
-
-        })
-
-       
-        watchlist.forEach(element => {
-            var list = this._watchlistObj.createList(element.name,watchlistSymbols)
-            // console.log("LIST ;;;;;;;;;",list)
-            this._watchlists[list.id] = element
-            // if (element.wlPosition == 0) {
+            var list = this._watchlistObj.createList(watchlist.name,watchlistSymbols)
+            console.log("LIST ;;;;;;;;;",list)
+            this._watchlists[list.id] = watchlist
+           
                 this._watchlistObj.setActiveList(list.id)
-            // }
-        });
+    
 
     }
 
@@ -111,9 +97,9 @@ export class ChartWatchlists {
     // }
 
     createWatchlist(listId,name, symbols) {
-        console.log("[createWatchlist] ... symbols name :: ",name,symbols)
+        logMessage(`"[createWatchlist] ... symbols name :: ",${name},${symbols}`)
         var list = this._watchlistObj.getAllLists()[listId]
-        console.log("[createWatchlist] list  :: ",list)
+        logMessage(`"[createWatchlist] list  :: ",${list}`)
         this._watchlists[listId] = {}
         var watchlistObj = this._watchlistObj
         var watchlists = this._watchlists
@@ -160,7 +146,8 @@ export async function getMWValues(){
     };
 
    const response= await fetch("https://zebull.in/rest/MobullService/v1/marketWatch/fetchMWList", requestOptions)
+   
         let watchdata=response.json()
         return watchdata
-    .catch(error => console.log('error', error));
+    .catch(error => logMessage(`[getMWValues] ${error}`,2));
 }

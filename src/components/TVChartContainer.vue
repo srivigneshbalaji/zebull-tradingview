@@ -6,7 +6,8 @@
 import { widget } from "../../public/charting_library";
 import Datafeed from "../mixins/feedFactory.js";
 import {ChartWatchlists,getMWValues} from "../mixins/marketWatchList.js";
-import { getWatchlistdata } from '../mixins/apiConnectionPool.js';
+// import { getWatchlistdata } from '../mixins/apiConnectionPool.js';
+import {logMessage,setLogging} from '../utils/helpers.js';
 function getLanguageFromURL() {
   const regex = new RegExp("[\\?&]lang=([^&#]*)");
   const results = regex.exec(window.location.search);
@@ -19,7 +20,7 @@ export default {
   name: "TVChartContainer",
   props: {
     symbol: {
-      default: "RELIANCE",
+      default: "RELIANCE_NSE",
       type: String,
     }, //RELIANCE
     interval: {
@@ -77,11 +78,12 @@ export default {
   },
   mounted() {
     this.initTWChart();
+    setLogging(process.env.NODE_ENV==="development")
   },
 
   methods: {
     initTWChart() {
-      console.log("Datafeed :::::::: ", Datafeed);
+      logMessage(`"Datafeed :::::::: ", ${Datafeed}`);
       const widgetOptions = {
         symbol: this.symbol,
         datafeed: Datafeed,
@@ -122,7 +124,7 @@ export default {
         },
 
         broker_factory: function (host) {
-          // console.log("host ======= ",host)
+         
           return new Brokers.BrokerSample(host, Datafeed);
         },
         broker_config: {
@@ -181,7 +183,7 @@ export default {
               body: "TradingView Charting Library API works correctly",
               callback: () => {
                 // eslint-disable-next-line no-console
-                console.log("Noticed!");
+                logMessage("Noticed!");
               },
             })
           );
@@ -191,22 +193,25 @@ export default {
 
         tvWidget.watchList().then(async  (watchlistObj) => {
           var chartWatchlist = new ChartWatchlists(watchlistObj);
-           console.log("[chartWatchlist] Init chartWatchlist :: ",watchlistObj,chartWatchlist)
+           console.log(`"[chartWatchlist] Init chartWatchlist :: "`,watchlistObj,chartWatchlist)
 
           // getWatchlistdata("mwGrpq").then((watchlists) => {  //get list of watchlist # this.brokerClass.watchlists()
-          //   console.log("[chartWatchlist] watchlists :: ",watchlists,typeof(watchlists))
-            // watchlists.forEach(watchlistdata => {
-              // console.log("[watchlist ,I] ",watchlistdata)
-              var mwid =await getMWValues();
-              console.log("MWID >>>>>>>>>>>>>>>",mwid)
-              let a = [];
-              for(let i in mwid.values){
-                console.log("II",i,mwid.values[i])
-                a.push({"id":mwid.values[i],"name":mwid.values[i]})
-              }
+            var mwid =await getMWValues();
+             console.log(`"MWID >>>>>>>>>>>>>>>",${mwid}`,mwid)
+            var watchlists=mwid.values
+            watchlists.forEach((watchlist,i) => {
+              
+                chartWatchlist.addWatchlist({"id":watchlist,"name":watchlist});
 
+            })
+              // var mwid =await getMWValues();
              
-              chartWatchlist.addWatchlist(a);
+              // let a = [];
+              // for(let i in mwid.values){
+              //   logMessage(`"II",${i,mwid.values[i]}`)
+              //   a.push({"id":mwid.values[i],"name":mwid.values[i]})
+              // }
+              // chartWatchlist.addWatchlist(a);
             // });
           // });
         //  updateWatchlist("WatchHere")
@@ -214,7 +219,7 @@ export default {
           //  chartWatchlist.getme()
         // chartWatchlist.createWatchlist("WatchHere","HDFC","HDFC")
           function updateWatchlist(listId, name, name2) {
-            console.log("[watchlist] updateWatchlist listId",listId)
+            logMessage(`"[watchlist] updateWatchlist listId",${listId}`)
             chartWatchlist.updateWatchlist(listId);
           }
           function renameWatchList(listId, oldName, newName) {
@@ -224,14 +229,14 @@ export default {
             chartWatchlist.renameWatchlist(listId, oldName, newName);
           }
           function createWatchlist(listId, name, symbols) {
-            console.log("[watchlist] createWatchlist=== listId",listId)
+            
             window.dataLayer.push({
               event: "tv-watchlist-created",
             });
             chartWatchlist.createWatchlist(listId, name, symbols);
           }
           function deleteWatchlist(listId) {
-            console.log("[watchlist] deleteWatchlist listId",listId)
+            
             window.dataLayer.push({
               event: "tv-watchlist-deleted",
             });

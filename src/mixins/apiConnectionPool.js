@@ -1,6 +1,7 @@
 
 var userid = localStorage.getItem('userid');
 var usession = localStorage.getItem('usession');
+
 var watchlistapi = "https://api.zebull.in/rest/V2MobullService/api/marketWatch/fetchMWScrips"
 
 export async function makeApiRequest(path, requestOptions) {
@@ -41,13 +42,13 @@ export async function getWatchlistdata(watchlistID) {
     var response=await fetchfromZebullAPI(watchlistapi, requestOptions)
     // .then((response)=> {
         if (response.stat == "Ok" && response.values[0] !== "No Market Watch") {
-            // console.log("[MarketWatch] getQuotes response :: ", response.values)
+            
             for (let scripts in response.values) {
                 let script = response.values[scripts]
                
                 var quote = {
                     s: 'ok',
-                    n: script.symbolname,
+                    n: `${script.symbolname}_${script.Exchange}`,
                     v: {
                         ch: script.open,
                         chp: script.Change,
@@ -70,9 +71,16 @@ export async function getWatchlistdata(watchlistID) {
             }
         }
     // })
-
+            console.log("[watchlist] dataArr :: ",dataArr)
     return dataArr
 
 }
 
+
+
+export async function getScripQuoteDetails(){
+    // let url="https://api.zebull.in/rest/V2MobullService/ScripDetails/getScripQuoteDetails"
+
+
+}
 
