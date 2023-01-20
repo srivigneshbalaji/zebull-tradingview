@@ -15,7 +15,7 @@ export class ChartWatchlists {
     }
 
     updateWatchlist(listId) {
-        console.log("[updatewatchlist] listId : ",listId)
+        //console.log("[updatewatchlist] listId : ",listId)
         var list = this._watchlistObj.getAllLists()[listId]
         // console.error("error === > ",list)
         
@@ -47,18 +47,18 @@ export class ChartWatchlists {
   async addWatchlist(watchlist) {
         var watchlistSymbols=[]
        
-        console.log(`"@@@ [watchlist] @@@@  ",`,watchlist.name)
+        //console.log(`"@@@ [watchlist] @@@@  ",`,watchlist.name)
 
        var response=await getWatchlistdata(watchlist.name)
        
-       console.log(`[[watchlist]] response ::::::::::::::::::: `,response)
+       //console.log(`[[watchlist]] response ::::::::::::::::::: `,response)
             response.forEach(resp=>{
                 // logMessage("@@@ [watchlist] @@@@  ")
                 watchlistSymbols.push(resp.n)
 
             })          
             var list = this._watchlistObj.createList(watchlist.name,watchlistSymbols)
-            console.log("LIST ;;;;;;;;;",list)
+            //console.log("LIST ;;;;;;;;;",list)
             this._watchlists[list.id] = watchlist
            
                 this._watchlistObj.setActiveList(list.id)

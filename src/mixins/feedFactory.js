@@ -33,7 +33,7 @@ export default {
         // logMessage('[onReady]: Method call');
         setTimeout(() => callback(configurationData));
     },
-    searchSymbols: async (userInput, exchange, symbolType, onResultReadyCallback) => {
+    async searchSymbols (userInput, exchange, symbolType, onResultReadyCallback){
         logMessage('[searchSymbols]: Method call');
         const symbols = await getAllSymbols(userInput);
         // const newSymbols = symbols.filter(symbol => {
@@ -49,24 +49,26 @@ export default {
 
     async getQuotes(symbols, onDataCallback, onErrorCallback) {
         logMessage(`"[getQuotes symbols] :: ",${symbols}`)
+      
         var symbolInfos = {}
         symbols.forEach(symbol => {
-            console.log("[getQuotes symbols] symbol :: ",symbol)
-            this.resolveSymbol(symbol, (symbolInfo) => {
-                symbolInfos[symbol] = symbolInfo
-                if (Object.keys(symbolInfos).length == symbols.length) {
-                    subscribeOnStream(Object.values(symbolInfos),
-                        undefined,
-                        onDataCallback,
-                        Date.now().toString(),
-                        undefined,
-                        undefined, 'single-quotes')
+            console.log("[getQuotes symbols] symbol :: ",symbol,this)
+            function resolvedata(symbolInfo){
+                    symbolInfos[symbol] = symbolInfo
+                    if (Object.keys(symbolInfos).length == symbols.length) {
+                        subscribeOnStream(Object.values(symbolInfos),
+                            undefined,
+                            onDataCallback,
+                            Date.now().toString(),
+                            undefined,
+                            undefined, 'single-quotes')
+                    }
                 }
-            })
+            this.resolveSymbol(symbol,resolvedata)
         });
     },
 
-    subscribeQuotes: async(symbols, fastSymbols, onRealtimeCallback, listenerGuid) => {
+    async subscribeQuotes(symbols, fastSymbols, onRealtimeCallback, listenerGuid){
         if (fastSymbols == null) {
             fastSymbols = symbols
         }
@@ -74,34 +76,36 @@ export default {
         // let allSym = [...new Set(fastSymbols.concat(symbols))]
         var symbolInfos = {}
         symbols.forEach(symbol => {
-            console.log("[symbol] HAI : ",symbol)
-            this.resolveSymbol(symbol, (symbolInfo) => {
+            console.log("[symbol] HAI 1: ",symbol)
+            function resolvedata(symbolInfo){
+                console.log("symbolinfo == ",symbolInfo)
                 symbolInfos[symbol] = symbolInfo
                 if (Object.keys(symbolInfos).length == symbols.length) {
                     subscribeOnStream(Object.values(symbolInfos),
                         undefined,
                         onRealtimeCallback,
-                        listenerGuid,
+                        Date.now().toString(),
                         undefined,
                         undefined, 'quotes')
                 }
-            })
+            }
+            this.resolveSymbol(symbol,resolvedata)
         });
 	},
-    unsubscribeQuotes: async(listenerGUID) => {
+    async unsubscribeQuotes(listenerGUID) {
         unsubscribeFromStream(listenerGUID)
 	},
 
-    resolveSymbol: async (symbolName, onSymbolResolvedCallback, ErrorCallback, extension) => {
-        console.log("[resolveSymbol] symbolName :: ",symbolName,extension,ErrorCallback)
+    async resolveSymbol(symbolName, onSymbolResolvedCallback, ErrorCallback, extension){
+        console.log("[resolveSymbol] symbolName :: ",new Date().toLocaleTimeString(),symbolName,extension,ErrorCallback)
         const currencyCode = extension && extension.currencyCode;
         const unitId = extension && extension.unitId;
         const resolveRequestStartTime = Date.now();
 
-        function onResultReady(symbolInfo) {
-            logMessage(`UdfCompatibleDatafeed: Symbol resolved: ${Date.now() - resolveRequestStartTime}ms`);
-            onSymbolResolvedCallback(symbolInfo);
-        }
+        // function onResultReady(symbolInfo) {
+        //     console.log(`UdfCompatibleDatafeed: Symbol resolved: ${Date.now() - resolveRequestStartTime}ms :`,symbolInfo);
+        //     onSymbolResolvedCallback(symbolInfo);
+        // }
 
         
         let requestOptions = {method: 'GET',redirect: 'follow'};
@@ -110,6 +114,10 @@ export default {
             symbolName = myArray[1];
         }else if(symbolName.includes("MCX:")){
             const myArray = symbolName.split("MCX:");
+            symbolName = myArray[1];
+        }
+        else if(symbolName.includes("NFO:")){
+            const myArray = symbolName.split("NFO:");
             symbolName = myArray[1];
         }
         else{
@@ -124,21 +132,21 @@ export default {
         }
 
         if (_symbolInfoMap[symbolName] != undefined) {
-            setTimeout(() => onResultReady(_symbolInfoMap[symbolName]));
-            console.log("_symbolInfoMap[symbolName] 1: ",_symbolInfoMap," \nsymbolName : ",symbolName,_symbolInfoMap[symbolName])
-            return Promise.resolve(_symbolInfoMap[symbolName])
+            setTimeout(() => onSymbolResolvedCallback(_symbolInfoMap[symbolName]));
+            console.log("_symbolInfoMap[symbolName] 1: ",new Date().toLocaleTimeString(),_symbolInfoMap," \nsymbolName : ",symbolName,_symbolInfoMap[symbolName])
+            // return Promise.resolve(_symbolInfoMap[symbolName])
         }
         var symbolItem;
 
         let symbols =await makeApiRequest(`https://api.zebull.in/rest/V2MobullService/chart/symbols?symbol=${symbolName}`, requestOptions);
         // logMessage(`"[resolveSymbol] symbols ===> ", ${symbolName}, ${symbols}, ${typeof symbols}`)
-        console.log("[resolveSymbol] symbols  : ",symbols)
+        console.log("[resolveSymbol] symbols  : ",new Date().toLocaleTimeString(),symbols)
         symbolItem=symbols
         console.log("[symbolItem] : ",symbolItem ,typeof symbolItem,Object.keys(symbolItem).length === 0)
         if (Object.keys(symbolItem).length === 0) {
             logMessage(`'[resolveSymbol]: Cannot resolve symbol', ${symbolName}`);
             ErrorCallback('cannot resolve symbol');
-            // return // Promise.reject('cannot resolve symbol');
+            // return Promise.reject('cannot resolve symbol');
         }
         var ticker;
        
@@ -156,6 +164,9 @@ export default {
             token:symbolItem.ticker,
             ticker: ticker,
             name: ticker,
+            base_name:ticker,
+            pro_name:ticker,
+            full_name:ticker,
             description: symbolItem.description,
             type: symbolItem.type,
             session: symbolItem.session,
@@ -171,13 +182,14 @@ export default {
             data_status: 'streaming',
         };
 
-        console.log('[resolveSymbol]: Symbol resolved',symbolInfo);
+        console.log('[resolveSymbol]: Symbol resolved',new Date().toLocaleTimeString(),symbolInfo);
         _symbolInfoMap[symbolName]=symbolInfo
         console.log("_symbolInfoMap[symbolName] 2: ",_symbolInfoMap,_symbolInfoMap[symbolName])
         onSymbolResolvedCallback(symbolInfo);
+        return Promise.resolve(_symbolInfoMap[symbolName])
 
     },
-    getBars: async (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
+    async getBars(symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback){
         // periodParams.firstDataRequest = true;
         // const firstDataRequest = periodParams;
         let requestOptions = {
@@ -194,7 +206,7 @@ export default {
             return { time: parseFloat(d.dateandtime), open: d.open, high: d.high, low: d.low, close: d.close, volume: Number(d.volume.toFixed(2)) }
         });
         console.log("Data : ",data)
-        try {
+        // try {
             if (data.Response && data.Response === 'Error' || data.length === 0) {
                 // "noData" should be set if there is no data in the requested period.
                 onHistoryCallback([], { noData: true });
@@ -220,12 +232,12 @@ export default {
                 });
             }
             onHistoryCallback(bars, { noData: false });
-        } catch (error) {
-            logMessage(`'[getBars]: Get error', ${error}`);
-            onErrorCallback(error);
-        }
+        // } catch (error) {
+        //     logMessage(`'[getBars]: Get error', ${error}`);
+        //     onErrorCallback(error);
+        // }
     },
-    subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback) => {
+    subscribeBars(symbolInfo, resolution, onRealtimeCallback, subscriberUID, onResetCacheNeededCallback){
         logMessage(`'[subscribeBars]: Method call with subscriberUID:', ${subscriberUID}`);
         subscribeOnStream(
             symbolInfo,
@@ -236,7 +248,7 @@ export default {
             lastBarsCache.get(symbolInfo.name),'bar'
         );
     },
-    unsubscribeBars: (subscriberUID) => {
+    unsubscribeBars(subscriberUID){
         logMessage(`'[unsubscribeBars]: Method call with subscriberUID:', ${subscriberUID}`);
         unsubscribeFromStream(subscriberUID);
     },

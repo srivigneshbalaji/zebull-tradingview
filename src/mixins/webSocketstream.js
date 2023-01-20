@@ -22,12 +22,12 @@ const guidToSubscription = new Map();
 
 const prelog = []
 
-const token = "VIJAY22_WEB"
+const tokenid = "VIJAY22_WEB"
 const userId = "VIJAY22"
 
 
 socket.onopen = function () {
-    connectionRequest(token, userId)
+    connectionRequest(tokenid, userId)
     prelog.forEach((message) => {
         send(message)
     });
@@ -37,7 +37,7 @@ socket.onmessage = function (msg) {
     var responseFeed = JSON.parse(msg.data);
 
     if (!!responseFeed.t && responseFeed.t == 'ck' && responseFeed.s == 'OK') {
-        connectionStatus=true
+        connectionStatus = true
         logMessage("<==========[Socket Connection Success]============>")
 
     } else if (!!responseFeed.t && responseFeed.t == 'ck' && responseFeed.s == 'NOT_OK') {
@@ -45,13 +45,13 @@ socket.onmessage = function (msg) {
         logMessage("!==========[Socket Session Invalid]============!")
     }
     if (responseFeed.tk) {
-        
+
         logMessage(`[socket.onmessage] responseFeed ${responseFeed}`)
         ProcessPacketString(responseFeed)
 
 
         // if (localStorage.getItem("loadChart") == "true" && chartFeed.resolution == localResolution) {
-        
+
         // } // checking chartload conditon
 
     }
@@ -66,8 +66,8 @@ socket.onerror = function (event) {
     socket.onclose()
 };
 
-async function connectionRequest(token, userId) {
-    var encrcptToken = await sha256(sha256(token).toString()).toString();
+async function connectionRequest(tokenid, userId) {
+    var encrcptToken = await sha256(sha256(tokenid).toString()).toString();
     var initCon = {
         susertoken: encrcptToken,
         t: "c",
@@ -91,15 +91,15 @@ async function send(msg) {
 
     } else {
         logMessage("[socket send] socket connection is undefined", 2)
-        console.log("[socket send] socket connection is undefined",socket.readyState , socket.readyState)
+        //console.log("[socket send] socket connection is undefined", socket.readyState, socket.readyState)
     }
 }
 
 async function establishConnection(payload) {
     if (connectionStatus == false) {
-        await connectionRequest(token, userId);
+        await connectionRequest(tokenid, userId);
     }
-    console.log("[establishConnection] : ",Date.now(),payload)
+    //console.log("[establishConnection] : ", Date.now(), payload)
     await send(JSON.stringify(payload));
 }
 
@@ -133,7 +133,7 @@ export async function websocketSubscription(payload) {
                 t: 'd'
             };
             await establishConnection(json);
-            console.log("[establishConnection] : json   :",Date.now(),payload)
+            //console.log("[establishConnection] : json   :", Date.now(), payload)
         }
     }
 }
@@ -220,30 +220,32 @@ export function unsubscribeFromStream(subscriberUID) {
 
 function _subscribeQuotes(symbols, onRealtimeCallback, subscribeUID, type) {
     symbols.forEach(function set(symbol) {
-        let channelString = `${symbol.exchange}|${symbol.token}#` 
+        let channelString = `${symbol.exchange}|${symbol.token}#`
         _setChannelMap(symbol, channelString, onRealtimeCallback, subscribeUID, type)
         websocketSubscription(channelString)
     })
 }
 
 function _subscribeBars(symbols, onRealtimeCallback, subscribeUID, lastDailyBar, resolution) {
+    //console.log("[_subscribeBars] symbols ",symbols)
     symbols.forEach(function set(symbol) {
-        let channelString = `${symbol.exchange}|${symbol.token}#` 
- 
+        //console.log("[_subscribeBars] symbol ",symbol)
+        let channelString = `${symbol.exchange}|${symbol.token}#`
+
         _setChannelMap(symbol, channelString, onRealtimeCallback, subscribeUID, 'bar', resolution, lastDailyBar)
         websocketSubscription(channelString)
 
-       
-        
+
+
     })
 }
 
 function _subscribeSingleQuotes(symbols, onRealtimeCallback, subscribeUID) {
-    console.log("[_subscribeSingleQuotes] symbols == ",symbols,subscribeUID)
+    //console.log("[_subscribeSingleQuotes] symbols == ", symbols, subscribeUID)
     symbols.forEach(function set(symbol) {
-        let channelString =`${symbol.exchange}|${symbol.token}#` 
+        let channelString = `${symbol.exchange}|${symbol.token}#`
         let existing = singleQuoteMap.get(subscribeUID)
-        console.log("[_subscribeSingleQuotes] existing == ",existing)
+        //console.log("[_subscribeSingleQuotes] existing == ", existing)
         if (existing) {
             existing[`${symbol.exchange}|${symbol.token}#`] = {
                 quote: {}
@@ -255,7 +257,7 @@ function _subscribeSingleQuotes(symbols, onRealtimeCallback, subscribeUID) {
                 symbol: symbol.name
             }
         }
-        console.log("[_subscribeSingleQuotes] singleQuoteMap : ",singleQuoteMap)
+        //console.log("[_subscribeSingleQuotes] singleQuoteMap : ", singleQuoteMap)
         _setChannelMap(symbol, channelString, onRealtimeCallback, subscribeUID, 'single-quotes')
         websocketSubscription(channelString)
     })
@@ -268,11 +270,11 @@ function _setChannelMap(symbol, channelString, onRealtimeCallback, subscribeUID,
         id: subscribeUID,
         callback: onRealtimeCallback,
     };
-    // console.log("[_setChannelMap] handler : ","symbol : ",symbol," channelString : ",channelString," handler : ",handler," subscribeUID : ",subscribeUID,
+    // //console.log("[_setChannelMap] handler : ","symbol : ",symbol," channelString : ",channelString," handler : ",handler," subscribeUID : ",subscribeUID,
     // "resolution : ",resolution,"lastDailyBar : ",lastDailyBar)
     if (subscriptionItem) {
         var index = subscriptionItem.handlers.findIndex(ob => {
-            console.log("[_setChannelMap] ob  subscribeUID : ",ob.id == subscribeUID,ob,subscribeUID)
+            //console.log("[_setChannelMap] ob  subscribeUID : ", ob.id == subscribeUID, ob, subscribeUID)
             return ob.id == subscribeUID
         })
         if (index == -1) {
@@ -306,10 +308,10 @@ function _setChannelMap(symbol, channelString, onRealtimeCallback, subscribeUID,
             }],
         };
         channelToSubscription.set(channelString, subscriptionItem);
-        console.log("[_setChannelMap] channelToSubscription  : ",channelToSubscription)
+        //console.log("[_setChannelMap] channelToSubscription  : ", channelToSubscription)
     }
     guidToSubscription.set(subscribeUID, channelString)
-    console.log("[_setChannelMap] guidToSubscription  : ",guidToSubscription)
+    //console.log("[_setChannelMap] guidToSubscription  : ", guidToSubscription)
     if (!guidToSubscription.has(subscribeUID)) {
         console.error("guid fail")
     }
@@ -318,7 +320,7 @@ function _setChannelMap(symbol, channelString, onRealtimeCallback, subscribeUID,
 
 
 function ProcessPacketString(responseFeed) {
-    console.log("[ProcessPacketString] .......::",responseFeed,responseFeed.t==="dk",responseFeed.t==="df")
+    //console.log("[ProcessPacketString] .......::", responseFeed, responseFeed.t === "dk", responseFeed.t === "df")
     // let data_map = new Map()
     // let pipe_broken = responseFeed.split('|');
     // pipe_broken.forEach(function parse(item){
@@ -330,24 +332,24 @@ function ProcessPacketString(responseFeed) {
     // if (message_code == 102 || message_code == 155) {
     //     return
     // }
-        // var preVolume = null;
-        // var curVolume;
-        // // tradingViewchart.methods.webSocketData(responseFeed) 
-        // var localResolution = localStorage.getItem(
-        //     "tradingview.chart.lastUsedTimeBasedResolution"
-        // );
-        // var currentGraph = []
-        // // var currBarVol;
-        // var lotSize;
-        // var open;
-        // var high;
-        // var low;
-        // var close;
-        // var volume;
-        // var date;
-        // let time;
-        // var tempRes;
-        // var tickerLtp;
+    // var preVolume = null;
+    // var curVolume;
+    // // tradingViewchart.methods.webSocketData(responseFeed) 
+    // var localResolution = localStorage.getItem(
+    //     "tradingview.chart.lastUsedTimeBasedResolution"
+    // );
+    // var currentGraph = []
+    // // var currBarVol;
+    // var lotSize;
+    // var open;
+    // var high;
+    // var low;
+    // var close;
+    // var volume;
+    // var date;
+    // let time;
+    // var tempRes;
+    // var tickerLtp;
 
     // if (currentChartData.chart == '::index') {
     //     tickerLtp = currentChartData['value']
@@ -534,231 +536,247 @@ function ProcessPacketString(responseFeed) {
     //     chartFeed.onRealtimeCallback(bar);
 
     // }
-try{
+    try {
+        var tradePrice
+        var openPrice
+        var highPrice
+        var lowPrice
+        var closePrice
+        var volume
+        var token
+        var market_segment
+        var tradeTime
+        var changeper
 
-    if (responseFeed.t==="dk")
-    {
-      var tradePrice=responseFeed["lp"]
-      var openPrice=responseFeed["o"];
-      var highPrice=responseFeed["h"];
-      var lowPrice=responseFeed["l"];
-      var closePrice=responseFeed["c"];
-      var volume=responseFeed["v"];
-      var token=responseFeed["tk"]
-      var market_segment=responseFeed["e"]
-      var tradeTime=responseFeed["ft"]
-  }
-      if("lp" in responseFeed) tradePrice = responseFeed["lp"]
-      if("o" in responseFeed) openPrice = responseFeed["o"];
-      if("h" in responseFeed) highPrice = responseFeed["h"];
-      if("l" in responseFeed) lowPrice = responseFeed["l"];
-      if("c" in responseFeed) closePrice = responseFeed["c"];
-      if("v" in responseFeed) volume = responseFeed["v"];
-      if("tk" in responseFeed) token = responseFeed["tk"]
-      if("e" in responseFeed) market_segment = responseFeed["e"]
-      if("ft" in responseFeed) tradeTime = responseFeed["ft"]
-  
-      let channelString =`${market_segment}|${token}#`
-      let subscriptionItem = channelToSubscription.get(channelString);
-      
-      if (subscriptionItem === undefined) {
-          return;
-      }
-      if (subscriptionItem.handlers === undefined) {
-          return;
-      }
-      subscriptionItem.handlers.forEach(function callHandler(handler) {
-          console.log("[subscriptionItem] handler.type ",handler)
-          if (handler.type == 'quotes') {
-              let quote = {
-                  s: 'ok',
-                  n: handler.symbol,
-                  v: {
-                      ch: (tradePrice - closePrice) ,
-                      chp: ((tradePrice - closePrice) / closePrice * 100),
-                      short_name: market_segment,
-                      exchange: market_segment,
-                      description: handler.symbol,
-                      lp: tradePrice ,
-                      open_price: openPrice ,
-                      high_price: highPrice ,
-                      low_price: lowPrice ,
-                      prev_close_price: closePrice ,
-                      volume: volume,
-                      token: token,
-                      market_segment_id: market_segment,
-                  }
-  
-              }
-              console.log("[quotes] handler.type : ",quote)
-              try {
-                  handler.handler.callback([quote])
-              } catch (err) {
-                  console.info(err)
-              }
-  
-          } else if (handler.type == 'tt-quotes') {
-              let quote = {
-                  s: 'success',
-                  n: handler.symbol,
-                  v: {
-                      ch: (tradePrice - closePrice) ,
-                      chp: ((tradePrice - closePrice) / closePrice * 100),
-                      short_name: market_segment,
-                      exchange: market_segment,
-                      description: handler.symbol,
-                      lp: tradePrice ,
-                      open_price: openPrice ,
-                      high_price: highPrice ,
-                      low_price: lowPrice ,
-                      prev_close_price: closePrice ,
-                      volume: volume
-                  }
-  
-              }
-              try {
-                  
-                  handler.handler.callback(quote)
-              } catch (err) {
-                  console.info(err)
-              }
-          } else if (handler.type == 'bar') {
-              
-              const lastDailyBar = handler.lastDailyBar;
-              const resolution = handler.resolution;
-              var nextDailyBarTime
-              if (resolution == '1' || resolution == 1) {
-                  nextDailyBarTime = getNextMinBarTime(lastDailyBar != null ? lastDailyBar.time : null);
-              } else if (resolution == '1D') {
-                  tradeTime = moment(tradeTime).startOf('day').toDate().getTime() + 19800000
-                  nextDailyBarTime = getNextDailyBarTime(lastDailyBar != null ? lastDailyBar.time : null);
-              } else if (resolution == '1M') {
-                  tradeTime = moment(tradeTime).startOf('month').toDate().getTime() + 19800000
-                  nextDailyBarTime = getNextMonthBarTime(lastDailyBar != null ? lastDailyBar.time : null);
-              } else if (resolution == '1Y') {
-                  tradeTime = moment(tradeTime).startOf('year').toDate().getTime() + 19800000
-                  nextDailyBarTime = getNextyearBarTime(lastDailyBar != null ? lastDailyBar.time : null);
-              }
-              let bar;
-              if (tradeTime >= nextDailyBarTime) {
-                  if (resolution == '1D') {
-                      bar = {
-                          time: nextDailyBarTime,
-                          open: openPrice,
-                          high: highPrice,
-                          low: lowPrice,
-                          close: tradePrice,
-                          volume: volume
-                      };
-                  } else {
-                      bar = {
-                          time: nextDailyBarTime,
-                          open: tradePrice,
-                          high: tradePrice,
-                          low: tradePrice,
-                          close: tradePrice,
-                      };
-                  }
-              } else {
-                  if (resolution == '1D') {
-                      bar = {
-                          ...lastDailyBar,
-                          high: highPrice,
-                          low: lowPrice,
-                          close: tradePrice,
-                          volume: volume
-                      };
-                  } else {
-                      bar = {
-                          ...lastDailyBar,
-                          high: Math.max((lastDailyBar != null ? lastDailyBar.high : 0), tradePrice ),
-                          low: Math.min(lastDailyBar != null ? lastDailyBar.low : 0, tradePrice ),
-                          close: tradePrice ,
-                      };
-                  }
-              }
-              console.log("[bar] handler.type : ",bar)
-              handler.handler.callback(bar)
-  
-              handler.lastDailyBar = bar;
-          } else if (handler.type == 'single-quotes') {
-              let quote = {
-                  s: 'success',
-                  n: handler.symbol,
-                  v: {
-                      ch: (tradePrice - closePrice) ,
-                      chp: ((tradePrice - closePrice) / closePrice * 100),
-                      lp: tradePrice,
-                      open_price: openPrice,
-                      high_price: highPrice,
-                      low_price: lowPrice,
-                      prev_close_price: closePrice,
-                      volume: volume,  
-                  }
-  
-              }
-              console.log("[single-quotes] else if handler.type : ",quote,singleQuoteMap)
-              let mapper = singleQuoteMap.get(handler.id)
-              if (mapper) {
-                  console.log("[single-quotes] mapper : ",mapper)
-                  let all = true
-                  let callbackResp = []
-                  mapper[`${market_segment}|${token}#`].quote = quote
-                  for (const [key,value] of Object.entries(mapper)) {
-                      console.log("key : " ,key," value : ",value )
-                      console.log("Object.keys(value.quote).length === 0 : ",Object.keys(value.quote).length === 0)
-                      if (Object.keys(value.quote).length === 0) {
-                          all = false
-                      } else {
-                          callbackResp.push({
-                              "s": "ok",
-                              "n": value.quote.n,
-                              "v": {
-                                  "ch": value.quote.v.ch,
-                                  "chp": value.quote.v.chp,
-                                  "short_name": value.quote.n.split("::")[0],
-                                  "exchange": value.quote.n.split("::")[1],
-                                  "description": value.quote.n,
-                                  "lp": value.quote.v.lp,
-                                  "ask": value.quote.v.ask || 0,
-                                  "bid": value.quote.v.bid || 0,
-                                  "open_price": value.quote.v.open_price,
-                                  "high_price": value.quote.v.high_price,
-                                  "low_price": value.quote.v.low_price,
-                                  "prev_close_price": value.quote.v.prev_close_price,
-                                  "volume": value.quote.v.volume,
-                                 
-                              }
-                          })
-                      }
-                  }
-                  console.log("[single-quotes] mapper : ",all,callbackResp)
-                  if (all) {
-                      handler.handler.callback(callbackResp)
-                      singleQuoteMap.delete(handler.handler.id)
-                      unsubscribeFromStream(handler.handler.id)
-                  }
-              }
-          }
-          //  else if (handler.type == 'depth') {
-          //     handler.handler.callback(depth)
-          // }
-  
-      });
+        if (responseFeed.t === "dk") {
+            tradePrice = responseFeed["lp"]
+            openPrice = responseFeed["o"];
+            highPrice = responseFeed["h"];
+            lowPrice = responseFeed["l"];
+            closePrice = responseFeed["c"];
+            volume = responseFeed["v"];
+            token = responseFeed["tk"]
+            market_segment = responseFeed["e"]
+            tradeTime = responseFeed["ft"]
+            changeper = responseFeed["cp"]
+        }
 
-}catch(e){
-    console.log("ERROR : ",e)
-}
+       
+
+        if ("lp" in responseFeed) tradePrice = responseFeed["lp"];
+        if ("o" in responseFeed) openPrice = responseFeed["o"];
+        if ("h" in responseFeed) highPrice = responseFeed["h"];
+        if ("l" in responseFeed) lowPrice = responseFeed["l"];
+        if ("c" in responseFeed) closePrice = responseFeed["c"];
+        if ("v" in responseFeed) volume = responseFeed["v"];
+        if ("tk" in responseFeed) token = responseFeed["tk"]
+        if ("e" in responseFeed) market_segment = responseFeed["e"]
+        if ("ft" in responseFeed) tradeTime = responseFeed["ft"]
+        if ("cp" in responseFeed) changeper = responseFeed["cp"]
+
+        let channelString = `${market_segment}|${token}#`
+        let subscriptionItem = channelToSubscription.get(channelString);
+
+        if (subscriptionItem === undefined) {
+            return;
+        }
+        if (subscriptionItem.handlers === undefined) {
+            return;
+        }
+        subscriptionItem.handlers.forEach(function callHandler(handler) {
+            //console.log("[subscriptionItem] handler.type ", handler)
+            if (handler.type == 'quotes') {
+                let quote = {
+                    s: 'ok',
+                    n: handler.symbol,
+                    v: {
+                        ch: (tradePrice - closePrice),
+                        chp: changeper,
+                        short_name: market_segment,
+                        exchange: market_segment,
+                        description: handler.symbol,
+                        lp: tradePrice,
+                        open_price: openPrice,
+                        high_price: highPrice,
+                        low_price: lowPrice,
+                        prev_close_price: closePrice,
+                        volume: volume,
+                        token: token,
+                        market_segment_id: market_segment,
+                    }
+
+                }
+                //console.log("[quotes] handler.type : ", quote)
+                try {
+                    handler.handler.callback([quote])
+                } catch (err) {
+                    console.info(err)
+                }
+
+            } else if (handler.type == 'tt-quotes') {
+                let quote = {
+                    s: 'success',
+                    n: handler.symbol,
+                    v: {
+                        ch: (tradePrice - closePrice),
+                        chp: changeper,
+                        short_name: market_segment,
+                        exchange: market_segment,
+                        description: handler.symbol,
+                        lp: tradePrice,
+                        open_price: openPrice,
+                        high_price: highPrice,
+                        low_price: lowPrice,
+                        prev_close_price: closePrice,
+                        volume: volume
+                    }
+
+                }
+                try {
+
+                    handler.handler.callback(quote)
+                } catch (err) {
+                    console.info(err)
+                }
+            } else if (handler.type == 'bar') {
+
+                const lastDailyBar = handler.lastDailyBar;
+                const resolution = handler.resolution;
+                var nextDailyBarTime
+                if (resolution == '1' || resolution == 1) {
+                    nextDailyBarTime = getNextMinBarTime(lastDailyBar != null ? lastDailyBar.time : null);
+                } else if (resolution == '1D') {
+                    tradeTime = moment(tradeTime).startOf('day').toDate().getTime() + 19800000
+                    nextDailyBarTime = getNextDailyBarTime(lastDailyBar != null ? lastDailyBar.time : null);
+                } else if (resolution == '1M') {
+                    tradeTime = moment(tradeTime).startOf('month').toDate().getTime() + 19800000
+                    nextDailyBarTime = getNextMonthBarTime(lastDailyBar != null ? lastDailyBar.time : null);
+                } else if (resolution == '1Y') {
+                    tradeTime = moment(tradeTime).startOf('year').toDate().getTime() + 19800000
+                    nextDailyBarTime = getNextyearBarTime(lastDailyBar != null ? lastDailyBar.time : null);
+                }
+                let bar;
+                if (tradeTime >= nextDailyBarTime) {
+                    if (resolution == '1D') {
+                        bar = {
+                            time: nextDailyBarTime,
+                            open: openPrice,
+                            high: highPrice,
+                            low: lowPrice,
+                            close: tradePrice,
+                            volume: volume
+                        };
+                    } else {
+                        bar = {
+                            time: nextDailyBarTime,
+                            open: tradePrice,
+                            high: tradePrice,
+                            low: tradePrice,
+                            close: tradePrice,
+                        };
+                    }
+                } else {
+                    if (resolution == '1D') {
+                        bar = {
+                            ...lastDailyBar,
+                            high: highPrice,
+                            low: lowPrice,
+                            close: tradePrice,
+                            volume: volume
+                        };
+                    } else {
+                        bar = {
+                            ...lastDailyBar,
+                            high: Math.max((lastDailyBar != null ? lastDailyBar.high : 0), tradePrice),
+                            low: Math.min(lastDailyBar != null ? lastDailyBar.low : 0, tradePrice),
+                            close: tradePrice,
+                        };
+                    }
+                }
+                //console.log("[bar] handler.type : ", bar)
+                handler.handler.callback(bar)
+
+                handler.lastDailyBar = bar;
+            } else if (handler.type == 'single-quotes') {
+                let quote = {
+                    s: 'success',
+                    n: handler.symbol,
+                    v: {
+                        ch: (tradePrice - closePrice),
+                        chp: changeper,
+                        lp: tradePrice,
+                        open_price: openPrice,
+                        high_price: highPrice,
+                        low_price: lowPrice,
+                        prev_close_price: closePrice,
+                        volume: volume,
+                    }
+
+                }
+                //console.log("[single-quotes] else if handler.type : ", quote, singleQuoteMap)
+                let mapper = singleQuoteMap.get(handler.id)
+
+                if (mapper) {
+                    //console.log("[single-quotes] mapper : ", mapper)
+                    let all = true
+                    let callbackResp = []
+                    mapper[`${market_segment}|${token}#`].quote = quote
+                    for (const [, value] of Object.entries(mapper)) {
+                        //console.log("key : ", key, " value : ", value)
+                        //console.log("Object.keys(value.quote).length === 0 : ", Object.keys(value.quote).length === 0)
+                        if (Object.keys(value.quote).length === 0) {
+                            all = false
+                        } else {
+                            callbackResp.push({
+                                "s": "ok",
+                                "n": value.quote.n,
+                                "v": {
+                                    "ch": value.quote.v.ch,
+                                    "chp": value.quote.v.chp,
+                                    "short_name": value.quote.n.split("::")[0],
+                                    "exchange": value.quote.n.split("::")[1],
+                                    "description": value.quote.n,
+                                    "lp": value.quote.v.lp,
+                                    "ask": value.quote.v.ask || 0,
+                                    "bid": value.quote.v.bid || 0,
+                                    "open_price": value.quote.v.open_price,
+                                    "high_price": value.quote.v.high_price,
+                                    "low_price": value.quote.v.low_price,
+                                    "prev_close_price": value.quote.v.prev_close_price,
+                                    "volume": value.quote.v.volume,
+
+                                }
+                            })
+                        }
+                    }
+                    // //console.log("[single-quotes] mapper : ", all, callbackResp)
+                    //console.log("[single-quotes] handler : ",all,callbackResp,handler)
+                    if (all) {
+                        handler.handler.callback(callbackResp)
+                        singleQuoteMap.delete(handler.handler.id)
+                        unsubscribeFromStream(handler.handler.id)
+                    }
+                }
+            }
+            //  else if (handler.type == 'depth') {
+            //     handler.handler.callback(depth)
+            // }
+
+        });
+
+    } catch (e) {
+        //console.log("ERROR : ", e)
+    }
 
 }
 
 // function odinDateParse(rand) {
-    // let [dateStr, timeStr] = rand.split(" ")
-    // let final_time = "T" + timeStr[0] + timeStr[1] + ":" + timeStr[2] + timeStr[3] + ":" + timeStr[4] + timeStr[5] + "+05:30"
-    // return Date.parse(dateStr + final_time)
-  
-    // var d = new Date(0); 
-//     console.log("[odinDateParse] : " ,new Date(rand?rand/1000:rand))
+// let [dateStr, timeStr] = rand.split(" ")
+// let final_time = "T" + timeStr[0] + timeStr[1] + ":" + timeStr[2] + timeStr[3] + ":" + timeStr[4] + timeStr[5] + "+05:30"
+// return Date.parse(dateStr + final_time)
+
+// var d = new Date(0); 
+//     //console.log("[odinDateParse] : " ,new Date(rand?rand/1000:rand))
 //     return new Date(rand);
 // }
 
@@ -812,7 +830,7 @@ function getNextMinBarTime(barTime) {
 // }
 
 // function marketDepthProcessMessage(message) {
-//     console.log("onResponse = $message ",message);
+//     //console.log("onResponse = $message ",message);
 //     var scrip = message//.split("|");
 //     //print(scrip);
 //     let depth = {
