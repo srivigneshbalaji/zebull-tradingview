@@ -5,6 +5,7 @@ Vue.use(Cryptojs);
 import sha256 from "crypto-js/sha256";
 // import { parseFullSymbol } from './apiConnectionPool.js';
 import { logMessage } from '../utils/helpers.js'
+// import { map } from "core-js/core/array";
 const moment = require('moment');
 
 // var chartFeed = '';
@@ -33,7 +34,7 @@ socket.onopen = function () {
     });
 }
 socket.onmessage = function (msg) {
-    logMessage(`=====> [socket] onmessage  :: ${msg}`);
+    // logMessage(`=====> [socket] onmessage  :: ${msg}`);
     var responseFeed = JSON.parse(msg.data);
 
     if (!!responseFeed.t && responseFeed.t == 'ck' && responseFeed.s == 'OK') {
@@ -46,7 +47,7 @@ socket.onmessage = function (msg) {
     }
     if (responseFeed.tk) {
 
-        logMessage(`[socket.onmessage] responseFeed ${responseFeed}`)
+        // logMessage(`[socket.onmessage] responseFeed ${responseFeed}`)
         ProcessPacketString(responseFeed)
 
 
@@ -80,6 +81,7 @@ async function connectionRequest(tokenid, userId) {
 }
 
 async function send(msg) {
+    // console.log("socket :: ",socket,msg)
     if (!!socket.readyState && socket.readyState == 1) {
         try {
             socket.send(msg);
@@ -133,7 +135,7 @@ export async function websocketSubscription(payload) {
                 t: 'd'
             };
             await establishConnection(json);
-            //console.log("[establishConnection] : json   :", Date.now(), payload)
+            console.log("[establishConnection] : json   :", Date.now(), payload,json)
         }
     }
 }
@@ -227,16 +229,13 @@ function _subscribeQuotes(symbols, onRealtimeCallback, subscribeUID, type) {
 }
 
 function _subscribeBars(symbols, onRealtimeCallback, subscribeUID, lastDailyBar, resolution) {
-    //console.log("[_subscribeBars] symbols ",symbols)
+    console.log("[_subscribeBars] symbols ",symbols)
     symbols.forEach(function set(symbol) {
-        //console.log("[_subscribeBars] symbol ",symbol)
+        console.log("[_subscribeBars] symbol ",symbol)
         let channelString = `${symbol.exchange}|${symbol.token}#`
 
         _setChannelMap(symbol, channelString, onRealtimeCallback, subscribeUID, 'bar', resolution, lastDailyBar)
         websocketSubscription(channelString)
-
-
-
     })
 }
 
@@ -317,6 +316,7 @@ function _setChannelMap(symbol, channelString, onRealtimeCallback, subscribeUID,
     }
 }
 
+// var listMap=new map()
 
 
 function ProcessPacketString(responseFeed) {
@@ -549,6 +549,7 @@ function ProcessPacketString(responseFeed) {
         var changeper
 
         if (responseFeed.t === "dk") {
+
             tradePrice = responseFeed["lp"]
             openPrice = responseFeed["o"];
             highPrice = responseFeed["h"];
@@ -558,11 +559,13 @@ function ProcessPacketString(responseFeed) {
             token = responseFeed["tk"]
             market_segment = responseFeed["e"]
             tradeTime = responseFeed["ft"]
-            changeper = responseFeed["cp"]
+            changeper = responseFeed["pc"]
+
         }
 
        
-
+        // let data_map = marketDepthProcessMessage(responseFeed);
+        // console.log("data_map :: ",data_map)
         if ("lp" in responseFeed) tradePrice = responseFeed["lp"];
         if ("o" in responseFeed) openPrice = responseFeed["o"];
         if ("h" in responseFeed) highPrice = responseFeed["h"];
@@ -572,7 +575,7 @@ function ProcessPacketString(responseFeed) {
         if ("tk" in responseFeed) token = responseFeed["tk"]
         if ("e" in responseFeed) market_segment = responseFeed["e"]
         if ("ft" in responseFeed) tradeTime = responseFeed["ft"]
-        if ("cp" in responseFeed) changeper = responseFeed["cp"]
+        if ("pc" in responseFeed) changeper = responseFeed["pc"]
 
         let channelString = `${market_segment}|${token}#`
         let subscriptionItem = channelToSubscription.get(channelString);
@@ -586,6 +589,7 @@ function ProcessPacketString(responseFeed) {
         subscriptionItem.handlers.forEach(function callHandler(handler) {
             //console.log("[subscriptionItem] handler.type ", handler)
             if (handler.type == 'quotes') {
+                console.log("Change :: ",tradePrice,closePrice,(tradePrice - closePrice))
                 let quote = {
                     s: 'ok',
                     n: handler.symbol,
@@ -642,6 +646,7 @@ function ProcessPacketString(responseFeed) {
 
                 const lastDailyBar = handler.lastDailyBar;
                 const resolution = handler.resolution;
+                console.log("lastDailyBar : ",resolution,lastDailyBar)
                 var nextDailyBarTime
                 if (resolution == '1' || resolution == 1) {
                     nextDailyBarTime = getNextMinBarTime(lastDailyBar != null ? lastDailyBar.time : null);
@@ -713,17 +718,13 @@ function ProcessPacketString(responseFeed) {
                     }
 
                 }
-                //console.log("[single-quotes] else if handler.type : ", quote, singleQuoteMap)
                 let mapper = singleQuoteMap.get(handler.id)
-
+                    console.log("mapper :: ",mapper)
                 if (mapper) {
-                    //console.log("[single-quotes] mapper : ", mapper)
                     let all = true
                     let callbackResp = []
                     mapper[`${market_segment}|${token}#`].quote = quote
                     for (const [, value] of Object.entries(mapper)) {
-                        //console.log("key : ", key, " value : ", value)
-                        //console.log("Object.keys(value.quote).length === 0 : ", Object.keys(value.quote).length === 0)
                         if (Object.keys(value.quote).length === 0) {
                             all = false
                         } else {
