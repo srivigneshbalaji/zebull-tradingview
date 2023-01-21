@@ -5,7 +5,7 @@ import {getMWValues} from './marketWatchList.js';
 import {logMessage} from '../utils/helpers.js'
 
 const lastBarsCache = new Map();
-var _symbolInfoMap={}
+window._symbolInfoMap={}
 const configurationData = {
     supported_resolutions: ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
     exchanges: [
@@ -116,6 +116,9 @@ export default {
             const myArray = symbolName.split("MCX:");
             symbolName = myArray[1];
         }
+        else if(symbolName.includes("-EQ")){
+            symbolName = symbolName.replace("-EQ","");
+        }
         else if(symbolName.includes("NFO:")){
             const myArray = symbolName.split("NFO:");
             symbolName = myArray[1];
@@ -137,7 +140,7 @@ export default {
             // return Promise.resolve(_symbolInfoMap[symbolName])
         }
         var symbolItem;
-
+        console.log("[resolveSymbol] symbolName :: ",new Date().toLocaleTimeString(),symbolName);
         let symbols =await makeApiRequest(`https://api.zebull.in/rest/V2MobullService/chart/symbols?symbol=${symbolName}`, requestOptions);
         // logMessage(`"[resolveSymbol] symbols ===> ", ${symbolName}, ${symbols}, ${typeof symbols}`)
         console.log("[resolveSymbol] symbols  : ",new Date().toLocaleTimeString(),symbols)
@@ -150,16 +153,17 @@ export default {
         }
         var ticker;
        
-        if(symbolItem['exchange-listed']=="NFO"){
+        if(symbolItem['exchange-listed']=="NFO" || symbolItem['exchange-listed']=="MCX"){
             ticker=symbolItem.description+"::"+symbolItem['exchange-listed'];
+            console.log("TICKER IN::",ticker)
         }
         else{
             ticker = symbolItem.name
-            if(ticker.includes("::")){
-                ticker = symbolItem.name.replace("::","_")
-            }
-            
         }
+            if(ticker.includes("::")){
+                ticker = ticker.replace("::","_")
+            }
+            console.log("TICKER::",ticker)
         const symbolInfo = {
             token:symbolItem.ticker,
             ticker: ticker,
@@ -172,7 +176,7 @@ export default {
             session: symbolItem.session,
             timezone: symbolItem.timezone,
             exchange: symbolItem["exchange-listed"],
-            minmov: symbolItem.minmov,
+            minmov: 100,
             pricescale: symbolItem.pricescale,
             has_intraday: symbolItem.has_intraday,
             has_no_volume: symbolItem.has_no_volume,
