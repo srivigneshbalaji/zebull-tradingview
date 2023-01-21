@@ -45,14 +45,17 @@ export async function getWatchlistdata(watchlistID) {
             
             for (let scripts in response.values) {
                 let script = response.values[scripts]
+                if(script.TradSym.includes("-EQ")){
+                    script.TradSym = script.TradSym.replace("-EQ","")
+                }
                
                 var quote = {
                     s: 'ok',
-                    n: `${script.symbolname}_${script.Exchange}`,
+                    n: `${script.TradSym}_${script.Exchange}`,
                     v: {
                         ch: script.open,
                         chp: script.Change,
-                        short_name: script.symbolname,
+                        short_name: script.TradSym,
                         exchange: script.Exchange,
                         description: script.companyname,
                         lp: parseFloat(script.ltp),
