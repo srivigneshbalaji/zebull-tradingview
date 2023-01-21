@@ -1,0 +1,58 @@
+<template>
+    <div class="main">
+        <input v-model="pvtData" placeholder="Enter a string" /> <br />
+        <button @click="encryptData">Encrypt</button>
+        <button @click="decryptData">Decrypt</button>
+        <button @click="deleteData">Delete</button>
+
+        <p>en : {{ encData }}</p>
+        <p>de : {{ decData }}</p>
+
+    </div>
+</template>
+
+<script>
+import CryptoJS from "crypto-js";
+// import sha256 from "crypto-js/sha256";
+
+export default {
+    name: "App",
+    data() {
+        return {
+            pvtData: "",
+            secret: "SVB",
+            encData: "",
+            decData: "",
+
+        };
+    },
+    methods: {
+        encryptData() {
+            if (this.pvtData.length) {
+                const data = CryptoJS.AES.encrypt(this.pvtData, this.secret).toString();
+               
+                localStorage.setItem("secretData", data);
+                this.getEncryptedData();
+            }
+        },
+
+        decryptData() {
+            const secretData = localStorage.getItem("secretData");
+            const decryptData = CryptoJS.AES.decrypt(
+                secretData,
+                this.secret
+            ).toString(CryptoJS.enc.Utf8);
+            this.decData = decryptData;
+        },
+
+        deleteData() {
+            localStorage.removeItem("secretData");
+            this.getEncryptedData();
+        },
+
+        getEncryptedData() {
+            this.encData = localStorage.getItem("secretData") || "No value present";
+        },
+    },
+};
+</script>
