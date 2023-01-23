@@ -12,6 +12,7 @@ const moment = require('moment');
 // var currentChartData =  new Map();
 
 const url = "wss://ws.zebull.in/NorenWS/"
+const userId = localStorage.getItem("userid");
 var connectionStatus = false
 const socket = new WebSocket(url);
 
@@ -22,9 +23,7 @@ const guidToSubscription = new Map();
 
 
 const prelog = []
-
-const tokenid = "VIJAY22_WEB"
-const userId = "VIJAY22"
+const tokenid = `${userId}_TV`
 
 
 socket.onopen = function () {
@@ -72,8 +71,8 @@ async function connectionRequest(tokenid, userId) {
     var initCon = {
         susertoken: encrcptToken,
         t: "c",
-        actid: userId + "_WEB",
-        uid: userId + "_WEB",
+        actid: userId + "_TV",
+        uid: userId + "_TV",
         source: "WEB"
     }
     send(JSON.stringify(initCon));
@@ -589,7 +588,7 @@ function ProcessPacketString(responseFeed) {
         subscriptionItem.handlers.forEach(function callHandler(handler) {
             //console.log("[subscriptionItem] handler.type ", handler)
             if (handler.type == 'quotes') {
-                console.log("Change :: ",tradePrice,closePrice,(tradePrice - closePrice))
+                // console.log("Change :: ",tradePrice,closePrice,(tradePrice - closePrice))
                 let quote = {
                     s: 'ok',
                     n: handler.symbol,
@@ -719,7 +718,7 @@ function ProcessPacketString(responseFeed) {
 
                 }
                 let mapper = singleQuoteMap.get(handler.id)
-                    console.log("mapper :: ",mapper)
+                    // console.log("mapper :: ",mapper)
                 if (mapper) {
                     let all = true
                     let callbackResp = []
