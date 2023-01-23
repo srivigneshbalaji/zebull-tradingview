@@ -137,7 +137,7 @@ export default {
         if (_symbolInfoMap[symbolName] != undefined) {
             setTimeout(() => onSymbolResolvedCallback(_symbolInfoMap[symbolName]));
             console.log("_symbolInfoMap[symbolName] 1: ",new Date().toLocaleTimeString(),_symbolInfoMap," \nsymbolName : ",symbolName,_symbolInfoMap[symbolName])
-            // return Promise.resolve(_symbolInfoMap[symbolName])
+            return Promise.resolve(_symbolInfoMap[symbolName])
         }
         var symbolItem;
         console.log("[resolveSymbol] symbolName :: ",new Date().toLocaleTimeString(),symbolName);
@@ -149,7 +149,7 @@ export default {
         if (Object.keys(symbolItem).length === 0) {
             logMessage(`'[resolveSymbol]: Cannot resolve symbol', ${symbolName}`);
             ErrorCallback('cannot resolve symbol');
-            // return Promise.reject('cannot resolve symbol');
+            return Promise.reject('cannot resolve symbol');
         }
         var ticker;
        
