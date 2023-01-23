@@ -349,7 +349,7 @@
         }
         async placeOrder(preOrder,confirmId) {
             let currentOrder = null;
-            console.log("PREORDER::", preOrder,confirmId);
+            console.log("PREORDER::", preOrder,confirmId,preOrder.customFields['2410'],preOrder.duration['type']);
             const handler = async (params)=>{
                 console.log("PREORDER::", preOrder,window._symbolInfoMap,window._symbolInfoMap[preOrder.symbol.replace("_","::")]);
                 if (preOrder.duration)
@@ -370,11 +370,13 @@
                     ;
                 const quoteDetailsResponse = await quoteDetails();
                 console.log("PREORDER Quote Details::",quoteDetailsResponse);
+                const pCode = preOrder.customFields['2410'] 
+                const prcType = preOrder.duration['type']
                 const orderData = {
-                    "complexty": "regular",
+                    "complexty": prcType==undefined ? "regular": prcType,
                     "discqty": 0,
                     "exch": symbolData.exchange,
-                    "pCode": "mis",
+                    "pCode": pCode,
                     "prctyp": priceTypes[params.type || 2],
                     "price": params.limitPrice || params.stopPrice || params.seenPrice,
                     "qty": params.qty,
@@ -382,7 +384,7 @@
                     "symbol_id": symbolData.token,
                     "trading_symbol": quoteDetailsResponse.TSymbl,
                     "transtype": getTransactionType(params.side || 1).toUpperCase(),
-                    "trigPrice": 0
+                    "trigPrice": 0,
                 };
                 const orderPrice = params.limitPrice || params.seenPrice;
                 const order = {
@@ -399,6 +401,7 @@
                     execution: params.customFields ? params.customFields['2410'] : '',
                     takeProfit: params.takeProfit,
                     stopLoss: params.stopLoss,
+                    Total:orderPrice*params.qty
                 };
                 console.log("PREORDER ORDER DATA::", order);
                 currentOrder = order;
@@ -418,6 +421,46 @@
                 this.orders(null,true);
             // }
             return {};
+        }
+        getOrderDialogOptions(symbol){
+            console.log("Get Order Dialog Options::", symbol);
+            let fieldValues = []
+            if(symbol.includes("NSE")){
+                fieldValues = [
+                    {
+                      text: "IntraDay (MIS)",
+                      value: "IntraDay (MIS)",
+                    },
+                    {
+                      text: "Delivery (CNC)",
+                      value: "Delivery (CNC)",
+                    },
+                ]
+            }
+            else{
+                fieldValues = [
+                    {
+                      text: "IntraDay (MIS)",
+                      value: "IntraDay (MIS)",
+                    },
+                    {
+                      text: "Carry Forward (NRML)",
+                      value: "Carry Forward (NRML)",
+                    },
+                ]
+            }
+            const orderDialog = {
+                showTotal:true,
+                customFields: [
+                    {
+                        inputType: 'ComboBox',
+                        id: '2410',
+                        title: 'Product Type',
+                        items: fieldValues
+                    }
+                ]
+            }
+            return Promise.resolve(orderDialog);
         }
         editPositionBrackets(positionId, positionBrackets) {
             console.log("EDIT POSITION::", positionId,positionBrackets);
@@ -679,7 +722,6 @@
             const handler = ()=>{
                 order.status = 1;
                 this._updateOrder(order);
-                
                 return Promise.resolve();
             }
             ;
@@ -715,12 +757,25 @@
             console.log("POSITION CLOSE::",this._positionById);
             const position = this._positionById[positionId];
             console.log("POSITION CLOSE::",positionId,position);
+            const handler = ()=>{
+                position.side = position.side === -1 ? 1 : -1,
+                position.type=2,
+                console.log("Close Position");
+                this._updatePosition(position);
+                this.positions(null,true);
+                return Promise.resolve(position);
+            }
+            ;
+            if(position.symbol.includes("_")){
+                var split = position.symbol.split("_");
+                position.symbol = split[0];
+            }
             const positionClose = ()=>{
                 const request = {
                     data: {
                         "exchSeg":position.positionParams.Exchangeseg,
                         "pCode":position.pType,
-                        "netQty":position.qty,
+                        "netQty":position.qty.toString(),
                         "tockenNo":position.id,
                         "symbol":position.symbol
                       },
@@ -732,14 +787,6 @@
         ;
             const posclose = await positionClose();
             console.log("Order Cancelled for Order",posclose);
-            const handler = ()=>{
-                position.side = position.side === -1 ? 1 : -1,
-                position.type=2,
-                console.log("Close Position");
-                this._updatePosition(position);
-                return Promise.resolve();
-            }
-            ;
             return handler();
         }
         possibleOrderStatuses() {
@@ -970,7 +1017,7 @@
     function formatRequiredPosition(positionData) {
         var _a;
         if (!positionData.symbol)
-            positionData.symbol = positionData.Tsym;
+            positionData.symbol = positionData.Tsym+"_"+positionData.Exchange;
         const isBuy = Number(positionData.Netqty) >= 0;
         const avgPrice = isBuy ? Number(positionData.NetBuyavgprc.replace(',', '')) : Number(positionData.NetSellavgprc.replace(',', ''));
         const exc = positionData.Exchange;
@@ -980,12 +1027,12 @@
         const pQty = Number(positionData.Netqty);
         const order = {
             id: positionData.Token,
-            symbol: positionData.Tsym,
+            symbol: positionData.Tsym+"_"+exc,
             qty: pQty,
             side: isBuy ? 1 : -1,
             avgPrice: avgPrice,
             price: avgPrice,
-            dispSym: positionData.companyname || positionData.Tsym || positionData.Symbol,
+            dispSym: positionData.Tsym+"_"+exc,
             exc: exc !== null && exc !== void 0 ? exc : "--",
             pType: (_a = positionData.Pcode) !== null && _a !== void 0 ? _a : "--",
             pQty: pQty,

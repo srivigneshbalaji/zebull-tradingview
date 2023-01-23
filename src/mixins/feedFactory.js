@@ -143,7 +143,7 @@ export default {
         console.log("[resolveSymbol] symbolName :: ",new Date().toLocaleTimeString(),symbolName);
         let symbols =await makeApiRequest(`https://api.zebull.in/rest/V2MobullService/chart/symbols?symbol=${symbolName}`, requestOptions);
         // logMessage(`"[resolveSymbol] symbols ===> ", ${symbolName}, ${symbols}, ${typeof symbols}`)
-        console.log("[resolveSymbol] symbols  : ",new Date().toLocaleTimeString(),symbols)
+        console.log("[resolveSymbol] symbols  : ",new Date().toLocaleTimeString(),symbols,symbolName)
         symbolItem=symbols
         console.log("[symbolItem] : ",symbolItem ,typeof symbolItem,Object.keys(symbolItem).length === 0)
         if (Object.keys(symbolItem).length === 0) {
