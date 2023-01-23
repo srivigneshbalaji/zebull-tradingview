@@ -145,7 +145,7 @@ export default {
     TVChartContainer
   },
 
-  mounted() {
+  created() {
 
     this.authcode = new URL(window.location.href).searchParams.get("authCode");
     console.log("authcode", this.authcode)
@@ -170,7 +170,7 @@ export default {
             if (response.data.client_code !== undefined) {
               var usersess = response.data.clientsession;
               axiosThis.jwtdecode = axiosThis.parseJwt(usersess);
-              console.log("usersess var", usersess)
+              console.log("usersess var", usersess, axiosThis.jwtdecode)
 
               localStorage.setItem("userid", response.data.client_code);
               localStorage.setItem("username", response.data.clientName);

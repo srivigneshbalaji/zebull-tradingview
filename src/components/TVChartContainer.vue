@@ -305,6 +305,6 @@ const tvWidget = new widget(widgetOptions);
 
 <style lang="scss" scoped>
 .TVChartContainer {
-  height: calc(100vh - 12px);
+  height: calc(100vh);
 }
 </style>
