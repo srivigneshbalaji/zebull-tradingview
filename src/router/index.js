@@ -3,6 +3,7 @@ import VueRouter from 'vue-router'
 
 import SsoSignin from '../views/SsoSignin.vue'
 
+import ZebullGetdata from '../views/zebull login/ZebullGetdata.vue'
 import TradingViewzebull from '../views/zebull login/TradingViewzebull.vue'
 
 // import TradingViewmynt from '../views/mynt login/TradingViewmynt.vue'
@@ -15,10 +16,16 @@ Vue.use(VueRouter)
 
 const routes = [
   {
+    path: '/zebull',
+    name: 'trading view zebull get data',
+    component: ZebullGetdata
+  },
+  {
     path: '/zebull-tv',
     name: 'trading view zebull',
     component: TradingViewzebull
   },
+
   // {
   //   path: '/myntpro-tv',
   //   name: 'trading view mynt',

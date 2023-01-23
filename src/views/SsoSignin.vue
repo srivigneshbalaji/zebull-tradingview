@@ -113,7 +113,7 @@ export default {
   }),
   methods: {
     signIn() {
-      location.href = `https://zebull.in/?mode=SSO&vendor=MyZebu&redirectUrl=${appurl}/zebull-tv`;
+      location.href = `https://zebull.in/?mode=SSO&vendor=MyZebu&redirectUrl=${appurl}/zebull`;
     },
     myntIn() {
 
