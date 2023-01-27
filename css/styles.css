@@ -1,0 +1,37 @@
+:root:not(.theme-dark) {
+    --tv-color-platform-background: #ffffff;
+    --tv-color-pane-background: rgb(255, 255, 255);
+    --tv-color-pane-background-secondary: rgb(255, 255, 255);
+    --tv-color-toolbar-button-background-hover: rgb(136, 221, 255);
+    --tv-color-toolbar-button-background-secondary-hover: red;
+    --tv-color-toolbar-button-background-expanded: rgb(136, 221, 255);
+    --tv-color-toolbar-button-text: rgb(0, 0, 0);
+    --tv-color-toolbar-button-text-hover: rgb(0, 0, 0);
+    --tv-color-toolbar-button-text-active: red;
+    --tv-color-toolbar-button-text-active-hover: red;
+    --tv-color-item-active-text: rgb(6, 6, 255);
+    --tv-color-toolbar-toggle-button-background-active: rgb(25, 0, 255);
+    --tv-color-toolbar-toggle-button-background-active-hover: rgb(136, 221, 255);
+}
+
+.theme-dark:root {
+    --tv-color-platform-background: #000000;
+    --tv-color-pane-background: rgb(0, 0, 0);
+    --tv-color-pane-background-secondary: rgb(0, 0, 0);
+    --tv-color-toolbar-button-background-hover: rgb(136, 221, 255);
+    --tv-color-toolbar-button-background-secondary-hover: red;
+    --tv-color-toolbar-button-background-expanded: rgb(136, 221, 255);
+    --tv-color-toolbar-button-text: rgb(255, 255, 255);
+    --tv-color-toolbar-button-text-hover: rgb(0, 0, 0);
+    --tv-color-toolbar-button-text-active: red;
+    --tv-color-toolbar-button-text-active-hover: red;
+    --tv-color-item-active-text: rgb(6, 255, 6);
+    --tv-color-toolbar-toggle-button-background-active: rgb(25, 0, 255);
+    --tv-color-toolbar-toggle-button-background-active-hover: rgb(136, 221, 255);
+}
+
+/* [data-name="legend-source-title"] {
+    display: none;
+  } */
+
+  

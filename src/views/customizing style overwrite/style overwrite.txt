@@ -8,3 +8,29 @@
 
 3 - @\public\charting_library\bundles\3921.d5182cf595ff23538303.css
     .icon-9pA37sIi+.text-9pA37sIi,.text-9pA37sIi+.icon-9pA37sIi{display: none;}
+
+4 - @\public\charting_library\bundles\4020.fdd6a9cb5f5a2bff4f36.css
+    @\public\charting_library\bundles\4020.fdd6a9cb5f5a2bff4f36.rtl.css
+    .chart-page{background-color:var(--tv-color-platform-background,#e0e3eb)}
+                    this to this
+    .chart-page{background-color:#e0e3eb;}
+                        &
+    html.theme-dark .chart-page{background-color:#2A2E39!important;}
+
+5 - @\public\charting_library\bundles\1320.5842d36462bf91f9bdee.css
+    @\public\charting_library\bundles\1320.5842d36462bf91f9bdee.rtl.css
+    .customButton-ymEQuMuZ{color:#131722;padding:0 10px;}
+                    this to this
+    .customButton-ymEQuMuZ{color:#131722;padding:0 6px;margin: 0 2px;}
+                        &
+    .customButton-ymEQuMuZ:hover{background-color:#f0f3fa;}
+    html.theme-dark .customButton-ymEQuMuZ:hover{background-color:#2A2E39!important;}
+
+6 - @\public\charting_library\bundles\8433.780a65b1965b7d3e23e7.css
+    .button-Rsu8YfBx.withText-Rsu8YfBx{padding:0 10px 0 5px}
+                        this to this
+    .button-Rsu8YfBx.withText-Rsu8YfBx{padding:0 5px 0 5px}
+
+---------------------------------------------------------------------------------
+7 - @\public\charting_library\bundles\watchlist-widget.df5baa7411642fb3069f.js  |
+    tofind { title: (0, c.t)("Add symbol"), className: Ie.headerButton,         |

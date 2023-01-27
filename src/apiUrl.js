@@ -4,6 +4,6 @@ export const mynturl = "https://go.mynt.in/NorenWClientTP";
 
 
 // export const apiurl="http://192.168.5.108:5000";
-export const appurl="https://zebull-tradingview.web.app";
-// export const appurl = "http://192.168.5.195:8080";
+// export const appurl="https://zebull-tradingview.web.app";
+export const appurl = "http://192.168.5.195:8080";
 

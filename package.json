@@ -16,6 +16,7 @@
     "sass-loader": "~13.2.0",
     "socket.io": "^4.5.4",
     "vue": "^2.6.14",
+    "vue-draggable-card": "^0.0.4",
     "vue-router": "^3.5.1",
     "vuetify": "^2.6.0"
   },

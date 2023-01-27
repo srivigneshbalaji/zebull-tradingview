@@ -4,7 +4,7 @@ import VueRouter from 'vue-router'
 import SsoSignin from '../views/SsoSignin.vue'
 
 import ZebullGetdata from '../views/zebull login/ZebullGetdata.vue'
-import TradingViewzebull from '../views/zebull login/TradingViewzebull.vue'
+import TradingViewzebull from '../components/TVChartContainer.vue'
 
 // import TradingViewmynt from '../views/mynt login/TradingViewmynt.vue'
 // import SsoMyntin from '../views/mynt login/SsoMyntin.vue'
